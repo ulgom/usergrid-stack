@@ -16,14 +16,22 @@
 package com.usergrid.count;
 
 import com.usergrid.count.common.Count;
+
+import me.prettyprint.cassandra.model.AllOneConsistencyLevelPolicy;
+import me.prettyprint.cassandra.model.ConfigurableConsistencyLevel;
 import me.prettyprint.cassandra.model.HCounterColumnImpl;
 import me.prettyprint.cassandra.serializers.ByteBufferSerializer;
 import me.prettyprint.cassandra.serializers.StringSerializer;
+import me.prettyprint.cassandra.service.BatchSizeHint;
+import me.prettyprint.hector.api.ConsistencyLevelPolicy;
+import me.prettyprint.hector.api.HConsistencyLevel;
 import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.beans.HCounterColumn;
 import me.prettyprint.hector.api.exceptions.HectorException;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
+
+import org.apache.cassandra.thrift.ConsistencyLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +49,9 @@ public class CassandraCounterStore implements CounterStore {
     private final Keyspace keyspace;
 
     public CassandraCounterStore(Keyspace keyspace) {
-        this.keyspace = keyspace;
+        this.keyspace = keyspace;                       
+        this.keyspace.setConsistencyLevelPolicy(new AllOneConsistencyLevelPolicy());
+        log.warn("CassandraCounterStore init-ed with custom ONE:ONE config policy");
     }
 
     public void save(Count count) {
@@ -49,7 +59,8 @@ public class CassandraCounterStore implements CounterStore {
     }
 
     public void save(Collection<Count> counts) {
-        Mutator<ByteBuffer> mutator = HFactory.createMutator(keyspace, ByteBufferSerializer.get());
+    	BatchSizeHint batchSizeHint = new BatchSizeHint(counts.size(), 16);
+        Mutator<ByteBuffer> mutator = HFactory.createMutator(keyspace, ByteBufferSerializer.get(), batchSizeHint);
         for ( Count count : counts ) {
             mutator.addCounter(count.getKeyNameBytes(), count.getTableName(),
                     new HCounterColumnImpl(count.getColumnName(), count.getValue(), count.getColumnNameSerializer()));
