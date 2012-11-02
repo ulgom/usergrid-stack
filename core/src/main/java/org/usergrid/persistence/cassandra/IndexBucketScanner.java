@@ -143,7 +143,7 @@ public class IndexBucketScanner {
     }
     
     private static abstract class DynamicCompositeComparator implements Comparator<ByteBuffer>{
-        protected final AbstractType dynamicComposite;
+        protected final AbstractType<ByteBuffer> dynamicComposite;
         
         @SuppressWarnings("unchecked")
         protected DynamicCompositeComparator(ApplicationCF cf){

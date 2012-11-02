@@ -178,13 +178,22 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.hectorclient</groupId>
+			<groupId>org.apache.cassandra</groupId>
+			<artifactId>cassandra-javautils</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.prettyprint</groupId>
 			<artifactId>hector-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.hectorclient</groupId>
+			<groupId>me.prettyprint</groupId>
 			<artifactId>hector-test</artifactId>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>me.prettyprint</groupId>
+			<artifactId>hector-object-mapper</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
