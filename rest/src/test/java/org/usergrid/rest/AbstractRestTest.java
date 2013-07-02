@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static org.usergrid.utils.JsonUtils.mapToFormattedJsonString;
 import static org.usergrid.utils.MapUtils.hashMap;
 
+import java.io.File;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,10 +30,8 @@ import java.util.UUID;
 
 import javax.ws.rs.core.MediaType;
 
-import com.sun.jersey.api.client.WebResource;
+import org.apache.catalina.startup.Tomcat;
 import org.codehaus.jackson.JsonNode;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -43,6 +42,7 @@ import org.usergrid.cassandra.CassandraRunner;
 import org.usergrid.java.client.Client;
 import org.usergrid.management.ManagementService;
 
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -66,7 +66,7 @@ public abstract class AbstractRestTest extends JerseyTest {
   /**
    * 
    */
-  private static final int JETTY_PORT = 9998;
+  private static final int TOMCAT_PORT = 9998;
 
   private static final String CONTEXT = "/";
 
@@ -87,9 +87,7 @@ public abstract class AbstractRestTest extends JerseyTest {
 
   protected static final AppDescriptor descriptor;
 
-    private static Server server;
-  
-
+  private static Tomcat tomcat;
 
   static {
     clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
@@ -97,7 +95,7 @@ public abstract class AbstractRestTest extends JerseyTest {
     descriptor = new WebAppDescriptor.Builder("org.usergrid.rest").clientConfig(clientConfig).build();
 
     dumpClasspath(AbstractRestTest.class.getClassLoader());
-    
+
   }
 
   public static void main(String... args) {
@@ -144,18 +142,15 @@ public abstract class AbstractRestTest extends JerseyTest {
     // test, and until we can upgrade versions this is the workaround. Backs
     // off with each attempt to allow the server to catch up
 
+    setUserPassword("ed@anuff.com", "sesame");
 
-        setUserPassword("ed@anuff.com", "sesame");
+    client = new Client("test-organization", "test-app").withApiUrl(getBaseURI().toString());
 
-        client = new Client("test-organization", "test-app").withApiUrl(getBaseURI().toString());
+    org.usergrid.java.client.response.ApiResponse response = client.authorizeAppUser("ed@anuff.com", "sesame");
 
-        org.usergrid.java.client.response.ApiResponse response = client.authorizeAppUser("ed@anuff.com", "sesame");
-
-        assertTrue(response != null && response.getError() == null);
+    assertTrue(response != null && response.getError() == null);
 
   }
-
-
 
   @Override
   protected TestContainerFactory getTestContainerFactory() {
@@ -168,31 +163,30 @@ public abstract class AbstractRestTest extends JerseyTest {
   public static void setup() throws Exception {
     // Class.forName("jsp.WEB_002dINF.jsp.org.usergrid.rest.TestResource.error_jsp");
     logger.info("setup");
-    
-    startJetty();
 
+    startTomcat();
 
+    managementService = CassandraRunner.getBean(ManagementService.class);
 
-      managementService = CassandraRunner.getBean(ManagementService.class);
-
-      managementService.setup();
-
+    managementService.setup();
 
   }
 
-    @AfterClass
-    public static void teardown() {
-        access_token = null;
-        usersSetup = false;
-        adminAccessToken = null;
+  @AfterClass
+  public static void teardown() {
+    access_token = null;
+    usersSetup = false;
+    adminAccessToken = null;
+  }
+
+  private static void startTomcat() throws Exception {
+    if (tomcat == null) {
+      tomcat = new Tomcat();
+      tomcat.setPort(TOMCAT_PORT);
+      tomcat.addWebapp(CONTEXT, new File("src/main/webapp").getAbsolutePath());
     }
 
-  private static void startJetty() throws Exception {
-      if ( server == null ) {
-    server = new Server(JETTY_PORT);
-    server.setHandler(new WebAppContext("src/main/webapp", CONTEXT));
-    server.start();
-      }
+    tomcat.start();
   }
 
   public static void logNode(JsonNode node) {
@@ -204,14 +198,12 @@ public abstract class AbstractRestTest extends JerseyTest {
    */
   @Before
   public void acquireToken() throws Exception {
-      properties = CassandraRunner.getBean("properties",Properties.class);
-      setupUsers();
+    properties = CassandraRunner.getBean("properties", Properties.class);
+    setupUsers();
     logger.info("acquiring token");
     access_token = userToken("ed@anuff.com", "sesame");
     logger.info("with token: {}", access_token);
     loginClient();
-
-
 
   }
 
@@ -230,25 +222,24 @@ public abstract class AbstractRestTest extends JerseyTest {
   }
 
   public void createUser(String username, String email, String password, String name) {
-      try {
-          JsonNode node = resource().path("/test-organization/test-app/token").queryParam("grant_type", "password")
-                  .queryParam("username", username).queryParam("password", password).accept(MediaType.APPLICATION_JSON)
-                  .get(JsonNode.class);
-          if ( getError(node) == null ) {
-              return;
-          }
-      } catch (Exception ex) {
-          logger.error("Miss on user. Creating.");
+    try {
+      JsonNode node = resource().path("/test-organization/test-app/token").queryParam("grant_type", "password")
+          .queryParam("username", username).queryParam("password", password).accept(MediaType.APPLICATION_JSON)
+          .get(JsonNode.class);
+      if (getError(node) == null) {
+        return;
       }
+    } catch (Exception ex) {
+      logger.error("Miss on user. Creating.");
+    }
 
-      adminToken();
+    adminToken();
 
+    Map<String, String> payload = hashMap("email", email).map("username", username).map("name", name)
+        .map("password", password).map("pin", "1234");
 
-      Map<String, String> payload = hashMap("email", email).map("username", username).map("name", name)
-              .map("password", password).map("pin", "1234");
-
-      resource().path("/test-organization/test-app/users").queryParam("access_token", adminAccessToken)
-              .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class, payload);
+    resource().path("/test-organization/test-app/users").queryParam("access_token", adminAccessToken)
+        .accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class, payload);
 
   }
 
@@ -256,9 +247,7 @@ public abstract class AbstractRestTest extends JerseyTest {
     Map<String, String> data = new HashMap<String, String>();
     data.put("newpassword", password);
 
-
-      adminToken();
-
+    adminToken();
 
     // change the password as admin. The old password isn't required
     JsonNode node = resource().path(String.format("/test-organization/test-app/users/%s/password", username))
