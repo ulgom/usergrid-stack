@@ -24,8 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import me.prettyprint.hector.testutils.EmbeddedSchemaLoader;
-
 import org.apache.cassandra.config.ConfigurationException;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.db.commitlog.CommitLog;
@@ -82,7 +80,6 @@ public class EmbeddedServerHelper {
 		System.setProperty("cassandra-foreground", "true");
 
 		cleanupAndLeaveDirs();
-		loadSchemaFromYaml();
 		// loadYamlTables();
 	}
 
@@ -208,13 +205,6 @@ public class EmbeddedServerHelper {
 		}
 	}
 
-	public static void loadSchemaFromYaml() {
-		try {
-			EmbeddedSchemaLoader.loadSchema();
-		} catch (RuntimeException e) {
-
-		}
-	}
 
 	class CassandraRunner implements Runnable {
 

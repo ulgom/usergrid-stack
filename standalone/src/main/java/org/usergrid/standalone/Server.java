@@ -16,16 +16,13 @@
 package org.usergrid.standalone;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.InputStream;
 import java.util.Properties;
-import java.util.UUID;
-
-import javax.servlet.Servlet;
-import javax.servlet.jsp.JspFactory;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleState;
@@ -38,35 +35,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.jasper.runtime.JspFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.request.RequestContextListener;
-import org.springframework.web.context.support.XmlWebApplicationContext;
-import org.springframework.web.filter.DelegatingFilterProxy;
-import org.usergrid.management.ManagementService;
-import org.usergrid.management.UserInfo;
-import org.usergrid.mq.QueueManagerFactory;
-import org.usergrid.persistence.EntityManagerFactory;
-import org.usergrid.persistence.cassandra.EntityManagerFactoryImpl;
-import org.usergrid.persistence.cassandra.Setup;
-import org.usergrid.rest.SwaggerServlet;
-import org.usergrid.rest.filters.ContentTypeFilter;
-import org.usergrid.services.ServiceManagerFactory;
 import org.usergrid.standalone.cassandra.EmbeddedServerHelper;
 
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.api.core.ResourceConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
-
-public class Server implements ApplicationContextAware {
+public class Server {
 
   public static final boolean INSTALL_JSP_SERVLETS = true;
 
@@ -82,16 +55,6 @@ public class Server implements ApplicationContextAware {
   protected Tomcat tomcat = null;
 
   EmbeddedServerHelper embeddedCassandra = null;
-
-  protected EntityManagerFactory emf;
-
-  protected ServiceManagerFactory smf;
-
-  protected ManagementService management;
-
-  protected Properties properties;
-
-  protected QueueManagerFactory qmf;
 
   int port = Integer.parseInt(System.getProperty("standalone.port", "8080"));
 
@@ -134,67 +97,169 @@ public class Server implements ApplicationContextAware {
         return;
       }
     }
-    startServer();
+    startServer(args);
   }
 
-  public synchronized void startServer() {
+  public synchronized void startServer(String[] args) {
 
     if (startDatabaseWithServer) {
       startCassandra();
     }
-   
-    //TODO T.N. This fails, need to figure this out
+
+    // TODO T.N. This fails, need to figure this out
     try {
       if (tomcat == null) {
+
+        File webappDir = extractWarFile();
+
         tomcat = new Tomcat();
         tomcat.setPort(port);
-        // tomcat.
-        tomcat.addWebapp("/", new File(".").getAbsolutePath());
+
+        tomcat.addWebapp("/", webappDir.getAbsolutePath());
       }
 
-      tomcat.start();
+       tomcat.start();
     } catch (Exception e) {
       logger.error("Unable to start tomcat", e);
     }
-    
 
     if (daemon) {
+
       while (true) {
         try {
-          Thread.sleep(Long.MAX_VALUE);
+          synchronized (this) {
+            wait();
+          }
         } catch (InterruptedException e) {
-          logger.warn("Interrupted");
         }
       }
     }
   }
 
-  private int getThreadSizeFromSystemProperties() {
-    // the default value is number of cpu core * 2.
-    // see
-    // org.glassfich.grizzly.strategies.AbstractIOStrategy.createDefaultWorkerPoolconfig()
-    int threadSize = Runtime.getRuntime().availableProcessors() * 2;
-
-    String threadSizeString = System.getProperty("server.threadSize");
-    if (threadSizeString != null) {
-      try {
-        threadSize = Integer.parseInt(threadSizeString);
-      } catch (Exception e) {
-        // ignore all Exception
-      }
+  /**
+   * Extract the war file and return the directory it is in
+   * 
+   * @param zipFile
+   * @param outputFolder
+   * @return
+   * @throws IOException
+   */
+  private static File extractWarFile() throws IOException {
+    
+    //check if the system property to run the standalone is set, if so do nothing
+    String developDirectory = System.getProperty("devdir");
+    
+    //its been overridden via the system param.  Just run from the specified directory
+    if(developDirectory != null) {
+      return new File(developDirectory);
     }
-    else {
-      try {
-        threadSize = Integer.parseInt(System.getProperty("server.threadSizeScale"))
-            * Runtime.getRuntime().availableProcessors();
-      } catch (Exception e) {
-        // ignore all Exception
-      }
+    
+    Properties runtimeProps = new Properties();
+    
+    runtimeProps.load(Server.class.getClassLoader().getResourceAsStream("tomcat.standalone.properties"));
+    
+    String buildTime = runtimeProps.getProperty("build.timestamp");
+    
+    String warFileName= runtimeProps.getProperty("warfile");
+    
+    String outputPath = String.format("%s", buildTime);
+    String complete = String.format("%s/extract.complete", outputPath);
+    
+    // create output directory is not exists
+    File outputDir = new File(outputPath);
+    File completed = new File(complete);
+
+    //nothing to do, we've already extracted it
+    if(outputDir.exists() && completed.exists()){
+      return outputDir;
+    }
+    
+    if (!outputDir.exists()) {
+      outputDir.mkdirs();
     }
 
-    return threadSize;
+    InputStream fileInWar = Server.class.getClassLoader().getResourceAsStream(warFileName);
+
+    if (fileInWar == null) {
+      throw new FileNotFoundException(String.format("Could not find file %s on the classpath", fileInWar));
+    }
+
+    byte[] buffer = new byte[1024^2];
+
+    // get the zip file content
+    ZipInputStream zis = new ZipInputStream(fileInWar);
+    // get the zipped file list entry
+    ZipEntry ze = null;
+    
+
+    while ((ze = zis.getNextEntry()) != null) {
+
+      String fileName = ze.getName();
+      File newFile = new File(String.format("%s/%s", outputPath , fileName));
+
+      System.out.println("file unzip : " + newFile.getAbsoluteFile());
+      
+      //no file data to write, skip to the next
+      if(ze.isDirectory()){
+        zis.closeEntry();
+        newFile.mkdirs();
+        continue;
+      }
+
+      FileOutputStream fos = new FileOutputStream(newFile);
+
+      int len;
+
+      while ((len = zis.read(buffer)) > 0) {
+        fos.write(buffer, 0, len);
+      }
+
+      fos.flush();
+      fos.close();
+      zis.closeEntry();
+    }
+
+    zis.closeEntry();
+    zis.close();
+
+    //write the complete marker
+    FileOutputStream fos = new FileOutputStream(complete);
+    fos.write(0);
+    fos.flush();
+    fos.close();
+
+    return outputDir;
 
   }
+
+  //
+  // private int getThreadSizeFromSystemProperties() {
+  // // the default value is number of cpu core * 2.
+  // // see
+  // //
+  // org.glassfich.grizzly.strategies.AbstractIOStrategy.createDefaultWorkerPoolconfig()
+  // int threadSize = Runtime.getRuntime().availableProcessors() * 2;
+  //
+  // String threadSizeString = System.getProperty("server.threadSize");
+  // if (threadSizeString != null) {
+  // try {
+  // threadSize = Integer.parseInt(threadSizeString);
+  // } catch (Exception e) {
+  // // ignore all Exception
+  // }
+  // }
+  // else {
+  // try {
+  // threadSize = Integer.parseInt(System.getProperty("server.threadSizeScale"))
+  // * Runtime.getRuntime().availableProcessors();
+  // } catch (Exception e) {
+  // // ignore all Exception
+  // }
+  // }
+  //
+  // return threadSize;
+  //
+  // }
 
   //
   // private void setupJspMappings() {
@@ -367,9 +432,9 @@ public class Server implements ApplicationContextAware {
       embeddedCassandra = null;
     }
 
-    if (ctx instanceof XmlWebApplicationContext) {
-      ((XmlWebApplicationContext) ctx).close();
-    }
+    // if (ctx instanceof XmlWebApplicationContext) {
+    // ((XmlWebApplicationContext) ctx).close();
+    // }
   }
 
   public void setDaemon(boolean daemon) {
@@ -442,51 +507,6 @@ public class Server implements ApplicationContextAware {
     embeddedCassandra.stop();
   }
 
-  public EntityManagerFactory getEntityManagerFactory() {
-    return emf;
-  }
-
-  @Autowired
-  public void setEntityManagerFactory(EntityManagerFactory emf) {
-    this.emf = emf;
-  }
-
-  public ServiceManagerFactory getServiceManagerFactory() {
-    return smf;
-  }
-
-  @Autowired
-  public void setServiceManagerFactory(ServiceManagerFactory smf) {
-    this.smf = smf;
-  }
-
-  public ManagementService getManagementService() {
-    return management;
-  }
-
-  @Autowired
-  public void setManagementService(ManagementService management) {
-    this.management = management;
-  }
-
-  public Properties getProperties() {
-    return properties;
-  }
-
-  @Autowired
-  public void setProperties(Properties properties) {
-    this.properties = properties;
-  }
-
-  public QueueManagerFactory getQueueManagerFactory() {
-    return qmf;
-  }
-
-  @Autowired
-  public void setQueueManagerFactory(QueueManagerFactory qmf) {
-    this.qmf = qmf;
-  }
-
   public boolean isInitializeDatabaseOnStart() {
     return initializeDatabaseOnStart;
   }
@@ -501,78 +521,6 @@ public class Server implements ApplicationContextAware {
 
   public void setStartDatabaseWithServer(boolean startDatabaseWithServer) {
     this.startDatabaseWithServer = startDatabaseWithServer;
-  }
-
-  boolean databaseInitializationPerformed = false;
-
-  public void springInit() {
-    logger.info("Initializing server with Spring");
-
-    // If we're running an embedded Cassandra, we always need to initialize
-    // it since Hector wipes the data on startup.
-    //
-    if (initializeDatabaseOnStart) {
-
-      if (databaseInitializationPerformed) {
-        logger.info("Can only attempt to initialized database once per JVM process");
-        return;
-      }
-      databaseInitializationPerformed = true;
-
-      logger.info("Initializing Cassandra database");
-      Map<String, String> properties = emf.getServiceProperties();
-      if (properties != null) {
-        logger.error("System properties are initialized, database is set up already.");
-        return;
-      }
-
-      try {
-        emf.setup();
-      } catch (Exception e) {
-        logger.error(
-            "Unable to complete core database setup, possibly due to it being setup already",
-            e);
-      }
-
-      try {
-        management.setup();
-      } catch (Exception e) {
-        logger.error(
-            "Unable to complete management database setup, possibly due to it being setup already",
-            e);
-      }
-
-      logger.info("Usergrid schema setup");
-    }
-
-  }
-
-  ApplicationContext ctx;
-
-  @Override
-  public void setApplicationContext(ApplicationContext ctx)
-      throws BeansException {
-    this.ctx = ctx;
-  }
-
-  public String getAccessTokenForAdminUser(String email) {
-    try {
-      UserInfo user = management.getAdminUserByEmail(email);
-      return management.getAccessTokenForAdminUser(user.getUuid(), 0);
-    } catch (Exception e) {
-      logger.error("Unable to get user: " + email);
-    }
-    return null;
-  }
-
-  public UUID getAdminUUID(String email) {
-    try {
-      UserInfo user = management.getAdminUserByEmail(email);
-      return user.getUuid();
-    } catch (Exception e) {
-      logger.error("Unable to get user: " + email);
-    }
-    return null;
   }
 
 }
