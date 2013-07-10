@@ -181,12 +181,11 @@
       <scope>compile</scope>
       <exclusions>
         <exclusion>
-
           <groupId>org.mortbay.jetty</groupId>
         </exclusion>
         <exclusion>
           <artifactId>servlet-api</artifactId>
-          <!-- <groupId>javax.servlet</groupId> -->
+          <groupId>javax.servlet</groupId>
         </exclusion>
         <exclusion>
           <artifactId>commons-logging</artifactId>
