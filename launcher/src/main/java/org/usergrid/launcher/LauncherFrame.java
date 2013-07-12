@@ -367,17 +367,11 @@ public class LauncherFrame extends JFrame {
 		url += "api_url=" + URLEncoder.encode("http://localhost:8080", "UTF-8");
 		if (app.isAutoLogin()) {
 			String access_token = app.getAccessToken();
-			UUID adminId = app.getAdminUUID();
 			
 			if (access_token != null) {
-				url += "&admin_email="
-						+ URLEncoder.encode(app.getAdminUserEmail(), "UTF-8");
 				url += "&access_token=" + access_token;
 			}
 			
-			if(adminId != null){
-			    url += "&uuid="+adminId;
-			}
 		}
 		return new URI(url);
 	}

@@ -73,25 +73,7 @@
           <showWarnings>true</showWarnings>
         </configuration>
       </plugin>
-      <!-- Create a self executing jar with tomcat 7 -->
-      <!-- <plugin> <groupId>org.apache.tomcat.maven</groupId> <artifactId>tomcat7-maven-plugin</artifactId> 
-        <version>2.1</version> <executions> <execution> <id>tomcat-run</id> <goals> 
-        <goal>exec-war-only</goal> </goals> <phase>package</phase> <configuration> 
-        optional only if you want to use a preconfigured server.xml file <serverXml>src/main/tomcatconf/server.xml</serverXml> 
-        <warRunDependencies> <warRunDependency> <dependency> <groupId>a groupId</groupId> 
-        <artifactId>and artifactId</artifactId> <version>version</version> <type>war</type> 
-        </dependency> <contextPath>/</contextPath> </warRunDependency> </warRunDependencies> 
-        naming is disable by default so use true to enable it <enableNaming>true</enableNaming> 
-        extra dependencies to add jdbc driver mail jars <extraDependencies> <extraDependency> 
-        <groupId>org.apache.derby</groupId> <artifactId>derby</artifactId> <version>10.1.3.1</version> 
-        </extraDependency> <extraDependency> <groupId>javax.mail</groupId> <artifactId>mail</artifactId> 
-        <version>1.4</version> </extraDependency> </extraDependencies> </configuration> 
-        </execution> </executions> </plugin> -->
-      <!-- wrap the REST project -->
-      <!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-war-plugin</artifactId> 
-        <version>2.1.1</version> <configuration> <overlays> <overlay> <groupId>org.usergrid</groupId> 
-        <artifactId>usergrid-rest</artifactId> </overlay> </overlays> </configuration> 
-        </plugin> -->
+    
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -153,28 +135,7 @@
     </pluginManagement>
   </build>
   <dependencies>
-    <!-- <dependency> <groupId>javax.annotation</groupId> <artifactId>jsr250-api</artifactId> 
-      <version>1.0</version> </dependency> <dependency> <groupId>javax.ws.rs</groupId> 
-      <artifactId>jsr311-api</artifactId> <version>1.1.1</version> </dependency> 
-      <dependency> <groupId>org.usergrid</groupId> <artifactId>usergrid-config</artifactId> 
-      <version>${project.version}</version> </dependency> <dependency> <groupId>org.usergrid</groupId> 
-      <artifactId>usergrid-count-common</artifactId> <version>${project.version}</version> 
-      </dependency> <dependency> <groupId>org.usergrid</groupId> <artifactId>usergrid-count-inserter</artifactId> 
-      <version>${project.version}</version> </dependency> <dependency> <groupId>org.usergrid</groupId> 
-      <artifactId>usergrid-count-batcher</artifactId> <version>${project.version}</version> 
-      </dependency> <dependency> <groupId>org.usergrid</groupId> <artifactId>usergrid-core</artifactId> 
-      <version>${project.version}</version> </dependency> <dependency> <groupId>org.usergrid</groupId> 
-      <artifactId>usergrid-services</artifactId> <version>${project.version}</version> 
-      </dependency> <dependency> <groupId>org.usergrid</groupId> <artifactId>usergrid-mongo-emulator</artifactId> 
-      <version>${project.version}</version> </dependency> -->
-    <!-- <dependency> <groupId>org.usergrid</groupId> <artifactId>usergrid-rest</artifactId> 
-      <version>${project.version}</version> <type>jar</type> <classifier>classes</classifier> 
-      <exclusions> <exclusion> <artifactId>servlet-api</artifactId> <groupId>javax.servlet</groupId> 
-      </exclusion> </exclusions> </dependency> <dependency> <groupId>org.hectorclient</groupId> 
-      <artifactId>hector-test</artifactId> <scope>compile</scope> </dependency> 
-      <dependency> <groupId>org.usergrid</groupId> <artifactId>usergrid-rest</artifactId> 
-      <version>${project.version}</version> <type>jar</type> <classifier>compiled-jsp</classifier> 
-      </dependency> -->
+  
     <dependency>
       <groupId>org.apache.cassandra</groupId>
       <artifactId>cassandra-all</artifactId>
@@ -182,6 +143,10 @@
       <exclusions>
         <exclusion>
           <groupId>org.mortbay.jetty</groupId>
+        </exclusion>
+         <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>servlet-api</artifactId>
         </exclusion>
         <exclusion>
           <artifactId>servlet-api</artifactId>
@@ -202,60 +167,6 @@
     </dependency>
    
 
-
-    <!-- <dependency> <groupId>javax.servlet</groupId> <artifactId>jstl</artifactId> 
-      </dependency> <dependency> <groupId>com.sun.mail</groupId> <artifactId>javax.mail</artifactId> 
-      </dependency> <dependency> <groupId>org.springframework</groupId> <artifactId>spring-core</artifactId> 
-      <exclusions> <exclusion> <artifactId>commons-logging</artifactId> <groupId>commons-logging</groupId> 
-      </exclusion> </exclusions> </dependency> <dependency> <groupId>org.springframework</groupId> 
-      <artifactId>spring-expression</artifactId> </dependency> <dependency> <groupId>org.springframework</groupId> 
-      <artifactId>spring-beans</artifactId> </dependency> <dependency> <groupId>org.springframework</groupId> 
-      <artifactId>spring-aop</artifactId> </dependency> <dependency> <groupId>org.springframework</groupId> 
-      <artifactId>spring-context</artifactId> </dependency> <dependency> <groupId>org.springframework</groupId> 
-      <artifactId>spring-context-support</artifactId> </dependency> <dependency> 
-      <groupId>org.springframework</groupId> <artifactId>spring-web</artifactId> 
-      </dependency> <dependency> <groupId>org.springframework</groupId> <artifactId>spring-test</artifactId> 
-      <scope>test</scope> </dependency> <dependency> <groupId>org.springframework</groupId> 
-      <artifactId>spring-webmvc</artifactId> </dependency> <dependency> <groupId>com.sun.jersey</groupId> 
-      <artifactId>jersey-server</artifactId> </dependency> <dependency> <groupId>com.sun.jersey.contribs</groupId> 
-      <artifactId>jersey-spring</artifactId> <exclusions> <exclusion> <groupId>org.springframework</groupId> 
-      <artifactId>spring-aop</artifactId> </exclusion> <exclusion> <groupId>org.springframework</groupId> 
-      <artifactId>spring-core</artifactId> </exclusion> <exclusion> <groupId>org.springframework</groupId> 
-      <artifactId>spring</artifactId> </exclusion> <exclusion> <groupId>org.springframework</groupId> 
-      <artifactId>spring-beans</artifactId> </exclusion> <exclusion> <groupId>org.springframework</groupId> 
-      <artifactId>spring-context</artifactId> </exclusion> <exclusion> <groupId>org.springframework</groupId> 
-      <artifactId>spring-web</artifactId> </exclusion> </exclusions> </dependency> 
-      <dependency> <groupId>net.tanesha.recaptcha4j</groupId> <artifactId>recaptcha4j</artifactId> 
-      </dependency> <dependency> <groupId>org.codehaus.jackson</groupId> <artifactId>jackson-core-asl</artifactId> 
-      </dependency> <dependency> <groupId>org.codehaus.jackson</groupId> <artifactId>jackson-jaxrs</artifactId> 
-      </dependency> <dependency> <groupId>org.codehaus.jackson</groupId> <artifactId>jackson-mapper-asl</artifactId> 
-      </dependency> <dependency> <groupId>org.codehaus.jackson</groupId> <artifactId>jackson-xc</artifactId> 
-      </dependency> <dependency> <groupId>org.yaml</groupId> <artifactId>snakeyaml</artifactId> 
-      </dependency> <dependency> <groupId>com.sun.jersey</groupId> <artifactId>jersey-json</artifactId> 
-      </dependency> <dependency> <groupId>com.sun.jersey.contribs</groupId> <artifactId>jersey-multipart</artifactId> 
-      </dependency> <dependency> <groupId>org.apache.servicemix.bundles</groupId> 
-      <artifactId>org.apache.servicemix.bundles.saxon</artifactId> </dependency> 
-      <dependency> <groupId>org.apache.shiro</groupId> <artifactId>shiro-core</artifactId> 
-      </dependency> <dependency> <groupId>org.apache.shiro</groupId> <artifactId>shiro-web</artifactId> 
-      </dependency> <dependency> <groupId>org.apache.shiro</groupId> <artifactId>shiro-spring</artifactId> 
-      </dependency> <dependency> <groupId>org.apache.amber</groupId> <artifactId>amber-oauth2-common</artifactId> 
-      </dependency> <dependency> <groupId>org.apache.amber</groupId> <artifactId>amber-oauth2-authzserver</artifactId> 
-      </dependency> <dependency> <groupId>org.apache.amber</groupId> <artifactId>amber-oauth2-resourceserver</artifactId> 
-      </dependency> <dependency> <groupId>junit</groupId> <artifactId>junit</artifactId> 
-      <scope>test</scope> </dependency> <dependency> <groupId>com.sun.jersey</groupId> 
-      <artifactId>jersey-client</artifactId> </dependency> <dependency> <groupId>org.slf4j</groupId> 
-      <artifactId>slf4j-api</artifactId> </dependency> <dependency> <groupId>org.slf4j</groupId> 
-      <artifactId>slf4j-log4j12</artifactId> <scope>compile</scope> </dependency> 
-      <dependency> <groupId>log4j</groupId> <artifactId>log4j</artifactId> <scope>compile</scope> 
-      </dependency> <dependency> <groupId>org.slf4j</groupId> <artifactId>jcl-over-slf4j</artifactId> 
-      <scope>compile</scope> </dependency> <dependency> <groupId>org.slf4j</groupId> 
-      <artifactId>jul-to-slf4j</artifactId> <scope>compile</scope> </dependency> 
-      <dependency> <groupId>commons-beanutils</groupId> <artifactId>commons-beanutils</artifactId> 
-      <type>jar</type> <scope>compile</scope> <exclusions> <exclusion> <artifactId>commons-logging</artifactId> 
-      <groupId>commons-logging</groupId> </exclusion> </exclusions> </dependency> 
-      <dependency> <groupId>commons-cli</groupId> <artifactId>commons-cli</artifactId> 
-      </dependency> <dependency> <groupId>com.google.guava</groupId> <artifactId>guava</artifactId> 
-      </dependency> -->
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-core</artifactId>
@@ -283,6 +194,13 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-servlet-api</artifactId>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.2.5</version>
     </dependency>
   </dependencies>
 </project>

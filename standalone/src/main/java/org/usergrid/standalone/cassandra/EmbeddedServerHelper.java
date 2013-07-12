@@ -43,7 +43,7 @@ public class EmbeddedServerHelper {
 	private static Logger log = LoggerFactory
 			.getLogger(EmbeddedServerHelper.class);
 
-	private static final String TMP = "tmp";
+	private static final String TMP = "tmp/cassandra";
 
 	private final String yamlFile;
 	static CassandraDaemon cassandraDaemon;
@@ -145,6 +145,7 @@ public class EmbeddedServerHelper {
 		String fileName = resource.substring(resource.lastIndexOf("/") + 1);
 		File file = new File(directory + System.getProperty("file.separator")
 				+ fileName);
+		file.getParentFile().mkdirs();
 		OutputStream out = new FileOutputStream(file);
 		byte buf[] = new byte[1024];
 		int len;

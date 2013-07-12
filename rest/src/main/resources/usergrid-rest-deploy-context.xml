@@ -17,6 +17,7 @@
 		<property name="locations">
 			<list>
 				<value>classpath:/usergrid-default.properties</value>
+                <value>classpath:/usergrid-custom.properties</value>
 			</list>
 		</property>
 	</bean>
