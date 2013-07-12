@@ -120,6 +120,7 @@ public class App {
     }
 
     launcher = new LauncherFrame(this);
+    
 
     logger.info("App started");
     // org.usergrid.standalone.Server.main(new String[0]);
@@ -259,6 +260,10 @@ public class App {
     prefs.put(ADMIN_USER_EMAIL, adminUserEmail);
   }
 
+  public String getAdminUserPassword(){
+    return adminUserPassword;
+  }
+  
   public void setAdminUserPassword(String adminUserEmail) {
     this.adminUserEmail = adminUserEmail;
     prefs.put(ADMIN_USER_PASSWORD, adminUserEmail);

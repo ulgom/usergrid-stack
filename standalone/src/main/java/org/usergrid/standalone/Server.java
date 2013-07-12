@@ -217,7 +217,7 @@ public class Server {
   }
 
   public boolean isRunning() {
-    return embeddedTomcat.isRunning();
+    return embeddedTomcat != null && embeddedTomcat.isRunning();
   }
 
   public void printCliHelp(String message) {

@@ -83,6 +83,7 @@ public class LauncherFrame extends JFrame {
 
 	JCheckBox auto_login_checkbox;
 	JTextField auto_login_email;
+	JPasswordField auto_login_password;
 
 	public LauncherFrame(App app) {
 		super("Usergrid Launcher");
@@ -297,10 +298,25 @@ public class LauncherFrame extends JFrame {
 				new Insets(16, 0, 8, 16), 0, 0);
 		auto_login_email.setFont(new Font("Arial", Font.BOLD, 18));
 		pane.add(auto_login_email, c);
+		
+		
+		JLabel passwordLabel = new JLabel("Password");
+		passwordLabel.setFont(new Font("Arial", Font.BOLD, 18));
+		c = new GridBagConstraints(0, 5, 1, 1, 0.0, 0.0,
+	        GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+	        new Insets(16, 24, 8, 0), 0, 0);
+		pane.add(passwordLabel, c);
+		
+		auto_login_password = new JPasswordField(app.getAdminUserPassword());
+    c = new GridBagConstraints(1, 5, 1, 1, 0.0, 0.0,
+        GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
+        new Insets(16, 0, 8, 16), 0, 0);
+    auto_login_password.setFont(new Font("Arial", Font.BOLD, 18));
+    pane.add(auto_login_password, c);
 
 		label = new JLabel(
 				"* Database can only be started or initialized once per app launch");
-		c = new GridBagConstraints(0, 5, 2, 1, 0.0, 0.0,
+		c = new GridBagConstraints(0, 6, 2, 1, 0.0, 0.0,
 				GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL,
 				new Insets(16, 16, 16, 0), 0, 0);
 		label.setForeground(Color.RED);
