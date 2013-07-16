@@ -223,8 +223,7 @@ public abstract class ValueResource extends NamedResource {
   public int verificationOfQueryResults(String query,String checkedQuery) {
 
     int totalEntitiesContained = 0;
-    //JsonNode correctNode = this.query(query,"limit","1000");
-    //JsonNode checkedNodes = this.query(checkedQuery,"limit","1000");
+
     JsonNode correctNode = this.withQuery(query).withLimit("1000").get();
     JsonNode checkedNodes = this.withQuery(checkedQuery).withLimit("1000").get();
 
@@ -281,6 +280,25 @@ public abstract class ValueResource extends NamedResource {
       valueHolder.put("Ordinal",i);
       this.create(valueHolder);
     }
+  }
+
+ // public JsonNode entityValue (JsonNode nodeSearched , String valueToSearch, int index) {
+ //   return nodeSearched.get("entities").get(index).findValue(valueToSearch);
+  //}
+  public JsonNode entityValue (String query, String valueToSearch, int index) {
+    JsonNode node = this.withQuery(query).get();
+    return node.get("entities").get(index).findValue(valueToSearch);
+  }
+
+  public JsonNode entityIndex(String query, int index) {
+
+    JsonNode node = this.withQuery(query).get();
+    return node.get("entities").get(index);
+  }
+  public JsonNode entityIndexLimit(String query,String limitSize, int index) {
+
+    JsonNode node = this.withQuery(query).withLimit(limitSize).get();
+    return node.get("entities").get(index);
   }
 
 }
