@@ -132,7 +132,7 @@ public class Activity extends TypedEntity {
 	@EntityProperty(indexed = true, required = true, mutable = false, timestamp = true)
 	protected Long published;
 
-	@EntityProperty(indexed = false, required = false, mutable = false)
+	@EntityProperty(indexed = true, required = false, mutable = false)
 	ActivityObject object;
 
 	@EntityProperty(indexed = true, fulltextIndexed = true, required = false, mutable = false)
