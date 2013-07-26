@@ -144,6 +144,38 @@ public class EventsResourceTest extends AbstractRestTest {
     assertEquals("useless_clicks",rest.get("counters").get(0).get("name").getTextValue());
     assertEquals(2,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
 
+  }
+
+  @Test
+  public void testCounterAddition() {
+
+    Map<String, Object> payload = new LinkedHashMap<String, Object>();
+    payload.put("timestamp", 0);
+    payload.put("category", "testing");
+    payload.put("counters", new LinkedHashMap<String, Object>() {
+      {
+        put("useless_clicks", 2);
+      }
+    });
+
+    JsonNode node = resource().path("/test-organization/test-app/events")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    assertNotNull(node.get("entities"));
+
+    JsonNode rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("counter","useless_clicks")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals("useless_clicks",rest.get("counters").get(0).get("name").getTextValue());
+    assertEquals(2,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
+
     for(int i = 0; i < 1000; i++) {
       node = resource().path("/test-organization/test-app/events")
           .queryParam("access_token", access_token)
