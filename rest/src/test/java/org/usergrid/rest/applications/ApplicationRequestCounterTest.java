@@ -52,9 +52,9 @@ public class ApplicationRequestCounterTest extends AbstractRestTest {
     			.queryParam("access_token", access_token)
     			.accept(MediaType.APPLICATION_JSON)
                 .type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
-    	
+
     	assertNotNull(node.get("entities"));
-    	
+
     	String uuid = node.get("application").asText();
     	assertEquals(true, UUIDUtils.isUUID(uuid));
     	
@@ -80,78 +80,6 @@ public class ApplicationRequestCounterTest extends AbstractRestTest {
 		assertEquals(1, afterCall-beforeCall);
 		assertEquals(1, afterTotalCall-beforeTotalCall);
     }
-
-  @Test
-  public void applicationCounterCreationTest() throws Exception{
-
-
-    JsonNode node = resource().path("/test-organization/test-app")
-        .queryParam("access_token", access_token)
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
-
-    assertNotNull(node.get("entities"));
-
-    String uuid = node.get("application").asText();
-    assertEquals(true, UUIDUtils.isUUID(uuid));
-
-    UUID applicationId = UUID.fromString(uuid);
-    EntityManagerFactory emf = CassandraRunner.getBean(EntityManagerFactory.class);
-    EntityManager em = emf.getEntityManager(applicationId);
-
-    //int beforeTotalCall = getCounter(em, ServiceManager.APPLICATION_REQUESTS);
-    //int beforeCall = getCounter(em, ServiceManager.APPLICATION_REQUESTS_PER.concat("get"));
-
-    Map counterName = hashMap("test_cliks","1");
-    Map payload = hashMap("counter",counterName);//hashMap("counters",
-    // "{\"test_cliks\" : \"1\"}").map("timestamp",
-    // "0");
-    payload.put("timestamp","0");
-
-
-    node = resource().path("/test-organization/test-app")
-        .queryParam("access_token", superAdminToken())
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .get(JsonNode.class);
-
-    node = resource().path("/test-organization/test-app/events")
-        .queryParam("access_token", superAdminToken())
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .post(JsonNode.class,payload);
-
-
-//     count = resource().path("/test-organization/test-app/counters")
-//        .queryParam("counter","test_cliks")
-//        .queryParam("access_token", access_token)
-//        .accept(MediaType.APPLICATION_JSON)
-//        .type(MediaType.APPLICATION_JSON_TYPE)
-//        .get(JsonNode.class);
-    int beforeTotalCall = getCounter(em, ServiceManager.APPLICATION_REQUESTS_PER.concat("get"));
-    //int beforeCall = getCounter(em, ServiceManager.APPLICATION_REQUESTS_PER.concat("get"));
-
-    node = resource().path("/test-organization/test-app")
-        .queryParam("access_token", superAdminToken())
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .get(JsonNode.class);
-
-    JsonNode rest = resource().path("/test-organization/test-app/counters")
-        .queryParam("start_time","1374702051841")
-        .queryParam("end_time",String.valueOf(System.currentTimeMillis()))
-        .queryParam("resolution","day")
-        .queryParam("counter","test_cliks")
-        .queryParam("access_token", superAdminToken())
-        .accept(MediaType.TEXT_HTML)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .get(JsonNode.class);
-
-    // String entityDisplay = clientActivationPost.getEntity(String.class);
-
-    assert(false);
-  }
-
 
   private int getCounter(EntityManager em, String key) throws Exception {
 		Query query = new Query();
