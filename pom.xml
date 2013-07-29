@@ -23,7 +23,7 @@
     <hector-om-version>2.0-01</hector-om-version>
     <hector-version>1.1-2-1</hector-version>
     <hector-test-version>1.1-2</hector-test-version>
-    <jackson-version>1.9.9</jackson-version>
+    <jackson-version>2.2.0</jackson-version>
     <jclouds.version>1.5.0-beta.3</jclouds.version>
     <jersey-version>1.17</jersey-version>
     <jetty.version>8.1.8.v20121106</jetty.version>
@@ -135,7 +135,6 @@
         <groupId>commons-collections</groupId>
         <artifactId>commons-collections</artifactId>
         <version>3.2.1</version>
-        <type>jar</type>
       </dependency>
 
       <dependency>
@@ -577,6 +576,48 @@
         <groupId>com.sun.jersey.jersey-test-framework</groupId>
         <artifactId>jersey-test-framework-core</artifactId>
         <version>${jersey-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.module</groupId>
+        <artifactId>jackson-module-jaxb-annotations</artifactId>
+        <version>${jackson-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.github.fge</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>2.1.6</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-smile</artifactId>
+        <version>${jackson-version}</version>
       </dependency>
 
       <dependency>
@@ -1882,5 +1923,4 @@
       <layout>default</layout>
     </pluginRepository>
   </pluginRepositories>
-
 </project>
