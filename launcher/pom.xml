@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.usergrid</groupId>
     <artifactId>usergrid</artifactId>
     <version>0.0.27-SNAPSHOT</version>
   </parent>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <bundle.symbolicName>org.usergrid.launcher</bundle.symbolicName>
-    <bundle.namespace>org.usergrid</bundle.namespace>
-  </properties>
+
   <artifactId>usergrid-launcher</artifactId>
-  <name>${bundle.symbolicName} [${bundle.namespace}]</name>
+  <name>Usergrid Launcher</name>
   <description>Usergrid Launcher</description>
   <packaging>jar</packaging>
+
   <build>
     <resources>
       <resource>
@@ -27,6 +24,7 @@
         </includes>
       </resource>
     </resources>
+
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
@@ -35,6 +33,7 @@
           <include>**/*.xml</include>
         </includes>
       </testResource>
+
       <testResource>
         <directory>src/test/resources</directory>
         <filtering>false</filtering>
@@ -43,20 +42,8 @@
         </excludes>
       </testResource>
     </testResources>
+
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-          <optimize>true</optimize>
-          <debug>true</debug>
-          <showDeprecation>true</showDeprecation>
-          <showWarnings>true</showWarnings>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -74,10 +61,10 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.1</version>
         <configuration>
           <archive>
             <manifest>
@@ -88,60 +75,9 @@
         </configuration>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <versionRange>[2.0,)</versionRange>
-                    <goals>
-                      <goal>copy-dependencies</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>
-                      org.apache.maven.plugins
-                    </groupId>
-                    <artifactId>
-                      maven-install-plugin
-                    </artifactId>
-                    <versionRange>
-                      [2.3.1,)
-                    </versionRange>
-                    <goals>
-                      <goal>install-file</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
+
   <dependencies>
-    <dependency>
-      <groupId>com.apple</groupId>
-      <artifactId>AppleJavaExtensions</artifactId>
-      <version>1.5</version>
-    </dependency>
     <dependency>
       <groupId>org.usergrid</groupId>
       <artifactId>usergrid-standalone</artifactId>
@@ -151,13 +87,32 @@
           <artifactId>commons-logging</artifactId>
           <groupId>commons-logging</groupId>
         </exclusion>
+    
+        <exclusion>
+          <artifactId>log4j</artifactId>
+          <groupId>log4j</groupId>
+        </exclusion>
+    
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
+
+    <dependency>
+      <artifactId>log4j</artifactId>
+      <groupId>log4j</groupId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.apple</groupId>
+      <artifactId>AppleJavaExtensions</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>3.1.0</version>
-      <type>jar</type>
     </dependency>
   </dependencies>
 </project>

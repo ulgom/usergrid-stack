@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.UUID;
 
+import me.prettyprint.cassandra.serializers.UUIDSerializer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.usergrid.persistence.Entity;
@@ -42,6 +44,7 @@ import org.usergrid.persistence.query.ir.NotNode;
 import org.usergrid.persistence.query.ir.OrNode;
 import org.usergrid.persistence.query.ir.QueryNode;
 import org.usergrid.persistence.query.ir.QuerySlice;
+import org.usergrid.persistence.query.ir.QuerySlice.RangeValue;
 import org.usergrid.persistence.query.ir.SearchVisitor;
 import org.usergrid.persistence.query.ir.SliceNode;
 import org.usergrid.persistence.query.ir.WithinNode;
@@ -67,6 +70,8 @@ import org.usergrid.persistence.schema.CollectionInfo;
 public class QueryProcessor {
 
   private static final int PAGE_SIZE = 1000;
+  
+  private static final Schema SCHEMA = getDefaultSchema();
 
   private Operand rootOperand;
   private List<SortPredicate> sorts;
@@ -110,7 +115,7 @@ public class QueryProcessor {
     // the root
     if (sorts.size() > 0) {
       
-      SliceNode sorts = generateSorts();
+      SliceNode sorts = generateSorts(opCount);
       
       opCount += sorts.getAllSlices().size();
       
@@ -129,13 +134,25 @@ public class QueryProcessor {
     
     //if we still don't have a root node, no query nor order by was specified, just use the all node
     if(rootNode == null){
-      rootNode = new AllNode(0);
+      
+      //this is a bit ugly, but how we handle the start parameter
+      UUID startResult = query.getStartResult();
+      
+      boolean startResultSet = startResult != null;
+      
+      AllNode allNode = new AllNode(0, startResultSet);
+      
+      if(startResultSet){
+        cursorCache.setNextCursor(allNode.getSlice().hashCode(), UUIDSerializer.get().toByteBuffer(startResult));
+      }
+      
+      rootNode = allNode;
     }
     
     if(opCount > 1){
       pageSizeHint = PAGE_SIZE;
     }else{
-      pageSizeHint = size;
+      pageSizeHint = Math.min(size, PAGE_SIZE);
     }
   }
 
@@ -156,7 +173,12 @@ public class QueryProcessor {
     SortPredicate sort = getSort(slice.getPropertyName());
 
     if (sort != null) {
-      slice.setReversed(sort.getDirection() == SortDirection.DESCENDING);
+      boolean isReversed = sort.getDirection() == SortDirection.DESCENDING;
+      
+      //we're reversing the direction of this slice, reverse the params as well
+      if(isReversed != slice.isReversed()){
+       slice.reverse();
+      }
     }
     // apply the cursor
     ByteBuffer cursor = cursorCache.getCursorBytes(slice.hashCode());
@@ -204,7 +226,7 @@ public class QueryProcessor {
 
     ResultIterator itr = visitor.getResults();
     
-    List<UUID> entityIds = new ArrayList<UUID>(size);
+    List<UUID> entityIds = new ArrayList<UUID>(Math.min(size, Query.MAX_LIMIT));
     
     CursorCache resultsCursor = new CursorCache();
     
@@ -245,8 +267,7 @@ public class QueryProcessor {
     // objects
     private CountingStack<QueryNode> nodes = new CountingStack<QueryNode>();
 
-    private Schema schema = getDefaultSchema();
-
+    
     private int contextCount = -1;
 
     /**
@@ -343,7 +364,7 @@ public class QueryProcessor {
       createNewSlice(child);
       child.visit(this);
 
-      nodes.push(new NotNode(nodes.pop(), new AllNode(++contextCount)));
+      nodes.push(new NotNode(nodes.pop(), new AllNode(++contextCount, false)));
     }
 
     /*
@@ -357,7 +378,7 @@ public class QueryProcessor {
 
       String propertyName = op.getProperty().getValue();
 
-      if (!schema.isPropertyFulltextIndexed(entityType, propertyName)) {
+      if (!SCHEMA.isPropertyFulltextIndexed(entityType, propertyName)) {
         throw new NoFullTextIndexException(entityType, propertyName);
       }
 
@@ -546,13 +567,6 @@ public class QueryProcessor {
 
     }
 
-    private void checkIndexed(String propertyName) throws NoIndexException {
-
-      if (!schema.isPropertyIndexed(entityType, propertyName) && collectionInfo != null
-          && !collectionInfo.isSubkeyProperty(propertyName)) {
-        throw new NoIndexException(entityType, propertyName);
-      }
-    }
     
     public int getSliceCount(){
       return nodes.getSliceCount();
@@ -614,10 +628,6 @@ public class QueryProcessor {
    * @return the pageSizeHint
    */
   public int getPageSizeHint(QueryNode node) {
-    if(node == rootNode){
-      return size;
-    }
-    
     return pageSizeHint;
   }
 
@@ -626,19 +636,33 @@ public class QueryProcessor {
    * cache
    * 
    * @return
+   * @throws NoIndexException 
    */
-  private SliceNode generateSorts() {
+  private SliceNode generateSorts(int opCount) throws NoIndexException {
 
     // the value is irrelevant since we'll only ever have 1 slice node
     // if this is called
-    SliceNode node = new SliceNode(0);
+    SliceNode node = new SliceNode(opCount);
 
     for (SortPredicate predicate : sorts) {
-      node.setStart(predicate.getPropertyName(), null, true);
-      node.setFinish(predicate.getPropertyName(), null, true);
+      String name = predicate.getPropertyName();
+      
+      checkIndexed(name);
+      
+      node.setStart(name, null, true);
+      node.setFinish(name, null, true);
     }
 
     return node;
+  }
+  
+
+  private void checkIndexed(String propertyName) throws NoIndexException {
+
+    if (propertyName == null || propertyName.isEmpty() || (!SCHEMA.isPropertyIndexed(entityType, propertyName) && collectionInfo != null
+        && !collectionInfo.isSubkeyProperty(propertyName))) {
+      throw new NoIndexException(entityType, propertyName);
+    }
   }
 
 }

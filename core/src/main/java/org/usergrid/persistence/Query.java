@@ -513,6 +513,11 @@ public class Query {
         this.level = level;
         return this;
     }
+    
+    public Query withReversed(boolean reversed){
+      setReversed(reversed);
+      return this;
+    }
 
     public String getEntityType() {
         return type;
@@ -927,9 +932,14 @@ public class Query {
     }
 
     public Query withLimit(int limit) {
-        limitSet = true;
-        this.limit = limit;
-        return this;
+      setLimit(limit);
+      return this;
+    }
+
+    /** bypass MAX_LIMIT checking. use with care! */
+    public void setLimitNoCheck(int limit) {
+      limitSet = true;
+      this.limit = limit;
     }
 
     public boolean isLimitSet() {

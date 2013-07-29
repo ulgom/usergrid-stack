@@ -115,6 +115,7 @@ import me.prettyprint.hector.api.mutation.Mutator;
 import me.prettyprint.hector.api.query.MultigetSliceQuery;
 import me.prettyprint.hector.api.query.QueryResult;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -144,21 +145,16 @@ import org.usergrid.persistence.cassandra.index.NoOpIndexScanner;
 import org.usergrid.persistence.entities.Group;
 import org.usergrid.persistence.query.ir.AllNode;
 import org.usergrid.persistence.query.ir.QuerySlice;
+import org.usergrid.persistence.query.ir.QuerySlice.RangeValue;
 import org.usergrid.persistence.query.ir.SearchVisitor;
 import org.usergrid.persistence.query.ir.SliceNode;
 import org.usergrid.persistence.query.ir.WithinNode;
-import org.usergrid.persistence.query.ir.result.CollectionIndexSliceParser;
-import org.usergrid.persistence.query.ir.result.ConnectionIndexSliceParser;
-import org.usergrid.persistence.query.ir.result.ConnectionIterator;
-import org.usergrid.persistence.query.ir.result.EntityResultsLoader;
-import org.usergrid.persistence.query.ir.result.GeoIterator;
-import org.usergrid.persistence.query.ir.result.IntersectionIterator;
-import org.usergrid.persistence.query.ir.result.SliceIterator;
-import org.usergrid.persistence.query.ir.result.UUIDIndexSliceParser;
+import org.usergrid.persistence.query.ir.result.*;
 import org.usergrid.persistence.schema.CollectionInfo;
 import org.usergrid.utils.IndexUtils;
 import org.usergrid.utils.MapUtils;
 import org.usergrid.utils.StringUtils;
+import org.usergrid.utils.UUIDUtils;
 
 import com.beoui.geocell.model.Point;
 import com.yammer.metrics.annotation.Metered;
@@ -1862,20 +1858,12 @@ public class RelationManagerImpl implements RelationManager {
 
   private IndexScanner searchIndex(Object indexKey, QuerySlice slice, int pageSize) throws Exception {
 
-    DynamicComposite start = getStart(slice);
-
-    DynamicComposite finish = getFinish(slice);
-
-    if (slice.isReversed() && (start != null) && (finish != null)) {
-      DynamicComposite temp = start;
-      start = finish;
-      finish = temp;
-    }
-
+    DynamicComposite[] range = slice.getRange();
+    
     Object keyPrefix = key(indexKey, slice.getPropertyName());
 
     IndexScanner scanner = new IndexBucketScanner(cass, indexBucketLocator, ENTITY_INDEX, applicationId,
-        IndexType.CONNECTION, keyPrefix, start, finish, slice.isReversed(), pageSize, slice.getPropertyName());
+        IndexType.CONNECTION, keyPrefix, range[0], range[1], slice.isReversed(), pageSize, slice.getPropertyName());
 
     return scanner;
 
@@ -1894,16 +1882,8 @@ public class RelationManagerImpl implements RelationManager {
   private IndexScanner searchIndexBuckets(Object indexKey, QuerySlice slice, String collectionName, int pageSize)
       throws Exception {
 
-    DynamicComposite start = getStart(slice);
-
-    DynamicComposite finish = getFinish(slice);
-
-    if (slice.isReversed() && (start != null) && (finish != null)) {
-      DynamicComposite temp = start;
-      start = finish;
-      finish = temp;
-    }
-
+    DynamicComposite[] range = slice.getRange();
+    
     Object keyPrefix = key(indexKey, slice.getPropertyName());
 
     // we have a cursor, so the first record should be discarded
@@ -1912,39 +1892,13 @@ public class RelationManagerImpl implements RelationManager {
     }
 
     IndexScanner scanner = new IndexBucketScanner(cass, indexBucketLocator, ENTITY_INDEX, applicationId,
-        IndexType.COLLECTION, keyPrefix, start, finish, slice.isReversed(), pageSize, collectionName);
+        IndexType.COLLECTION, keyPrefix, range[0], range[1], slice.isReversed(), pageSize, collectionName);
 
     return scanner;
 
   }
 
-  private DynamicComposite getStart(QuerySlice slice) {
-    DynamicComposite start = null;
-
-    if (slice.getCursor() != null) {
-      start = DynamicComposite.fromByteBuffer(slice.getCursor());
-    } else if (slice.getStart() != null) {
-      start = new DynamicComposite(slice.getStart().getCode(), slice.getStart().getValue());
-      if (!slice.getStart().isInclusive()) {
-        setEqualityFlag((DynamicComposite) start, ComponentEquality.GREATER_THAN_EQUAL);
-      }
-    }
-
-    return start;
-  }
-
-  private DynamicComposite getFinish(QuerySlice slice) {
-    DynamicComposite finish = null;
-
-    if (slice.getFinish() != null) {
-      finish = new DynamicComposite(slice.getFinish().getCode(), slice.getFinish().getValue());
-      if (slice.getFinish().isInclusive()) {
-        setEqualityFlag((DynamicComposite) finish, ComponentEquality.GREATER_THAN_EQUAL);
-      }
-    }
-
-    return finish;
-  }
+ 
 
   @SuppressWarnings("unchecked")
   @Override
@@ -2012,23 +1966,18 @@ public class RelationManagerImpl implements RelationManager {
   @Metered(group = "core", name = "RelationManager_getCollection_start_result")
   public Results getCollection(String collectionName, UUID startResult, int count, Results.Level resultsLevel,
       boolean reversed) throws Exception {
-    // Entity_Collections
-    // Key: entity_id,collection_name
-    IndexScanner scanner = cass.getIdList(cass.getApplicationKeyspace(applicationId),
-        key(headEntity.getUuid(), DICTIONARY_COLLECTIONS, collectionName), startResult, null, count + 1, reversed,
-        indexBucketLocator, applicationId, collectionName);
+    // changed intentionally to delegate to search so that behavior is
+    // consistent across all index access.
 
-    List<UUID> ids = getUUIDListFromIdIndex(scanner, count);
+    // TODO T.N fix cursor parsing here so startResult can be used in this
+    // context. Needs a bit of refactor
+    // for accommodating cursor I/O USERGRID-1750. A bit hacky, but until a
+    // furthur refactor this works.
 
-    Results results = null;
+    Query query = new Query().withResultsLevel(resultsLevel).withReversed(reversed).withLimit(count)
+        .withStartResult(startResult);
 
-    if (resultsLevel == Results.Level.IDS) {
-      results = Results.fromIdList(ids);
-    } else {
-      results = Results.fromIdList(ids, getDefaultSchema().getCollectionType(headEntity.getType(), collectionName));
-    }
-
-    return em.loadEntities(results, resultsLevel, count);
+    return searchCollection(collectionName, query);
   }
 
   @Override
@@ -2084,24 +2033,10 @@ public class RelationManagerImpl implements RelationManager {
   @Metered(group = "core", name = "RelationManager_getCollecitonForQuery")
   public Results getCollection(String collectionName, Query query, Results.Level resultsLevel) throws Exception {
 
-    UUID startResult = query.getStartResult();
-    String cursor = query.getCursor();
-    if (cursor != null) {
-      byte[] cursorBytes = decodeBase64(cursor);
-      if ((cursorBytes != null) && (cursorBytes.length == 16)) {
-        startResult = uuid(cursorBytes);
-      }
-    }
-    int count = query.getLimit();
+    // changed intentionally to delegate to search so that behavior is
+    // consistent across all index access.
 
-    Results results = getCollection(collectionName, startResult, count, resultsLevel, query.isReversed());
-
-    if (results != null) {
-      results.setQuery(query);
-    }
-
-    return results;
-
+    return searchCollection(collectionName, query);
   }
 
   @Override
@@ -2336,11 +2271,22 @@ public class RelationManagerImpl implements RelationManager {
     QueryProcessor qp = new QueryProcessor(query, collection);
     SearchCollectionVisitor visitor = new SearchCollectionVisitor(query, qp, collection);
 
-    return qp.getResults(em, visitor, new EntityResultsLoader(em));
+    return qp.getResults(em, visitor, getResultsLoader(query));
+  }
+
+  private ResultsLoader getResultsLoader(Query query) {
+    switch (query.getResultsLevel()) {
+      case IDS:
+        return new IDLoader();
+      case REFS:
+        return new ConnectionRefLoader(query.getEntityType());
+      default:
+        return new EntityResultsLoader(em);
+    }
   }
 
   private List<UUID> getUUIDListFromIdIndex(IndexScanner scanner, int size) {
-    SliceIterator<UUID> iter = new SliceIterator<UUID>(scanner, new QuerySlice("uuid", -1), UUID_PARSER);
+    SliceIterator<UUID> iter = new SliceIterator<UUID>(scanner, new QuerySlice("uuid", -1), UUID_PARSER, false);
 
     List<UUID> ids = new ArrayList<UUID>(size);
 
@@ -2625,7 +2571,8 @@ public class RelationManagerImpl implements RelationManager {
           columns = searchIndexBuckets(indexKey, slice, collection.getName(), queryProcessor.getPageSizeHint(node));
         }
 
-        intersection.addIterator(new SliceIterator<DynamicComposite>(columns, slice, COLLECTION_PARSER));
+        intersection.addIterator(new SliceIterator<DynamicComposite>(columns, slice, COLLECTION_PARSER, slice
+            .hasCursor()));
 
       }
 
@@ -2647,11 +2594,13 @@ public class RelationManagerImpl implements RelationManager {
         startId = UUID_PARSER.parse(slice.getCursor());
       }
 
+      boolean skipFirst = node.isForceKeepFirst() ? false : slice.hasCursor();
+
       IndexScanner results = cass.getIdList(cass.getApplicationKeyspace(applicationId),
           key(headEntity.getUuid(), DICTIONARY_COLLECTIONS, collectionName), startId, null,
           queryProcessor.getPageSizeHint(node), query.isReversed(), indexBucketLocator, applicationId, collectionName);
 
-      this.results.push(new SliceIterator<UUID>(results, slice, UUID_PARSER));
+      this.results.push(new SliceIterator<UUID>(results, slice, UUID_PARSER, skipFirst));
     }
 
     /*
@@ -2728,7 +2677,8 @@ public class RelationManagerImpl implements RelationManager {
 
         IndexScanner columns = searchIndex(key, slice, size);
 
-        intersection.addIterator(new SliceIterator<DynamicComposite>(columns, slice, COLLECTION_PARSER));
+        intersection.addIterator(new SliceIterator<DynamicComposite>(columns, slice, COLLECTION_PARSER, slice
+            .hasCursor()));
       }
 
       this.results.push(intersection);
@@ -2774,6 +2724,8 @@ public class RelationManagerImpl implements RelationManager {
         size++;
       }
 
+      boolean skipFirst = node.isForceKeepFirst() ? false : slice.hasCursor();
+
       if (connection.getConnectionType() != null) {
         ConnectionIndexSliceParser connectionParser = new ConnectionIndexSliceParser(
             connection.getConnectedEntityType());
@@ -2781,12 +2733,12 @@ public class RelationManagerImpl implements RelationManager {
         IndexScanner connectionScanner = new ConnectedIndexScanner(cass, DICTIONARY_CONNECTED_ENTITIES, applicationId,
             connection, start, slice.isReversed(), size);
 
-        this.results.push(new SliceIterator<DynamicComposite>(connectionScanner, slice, connectionParser));
+        this.results.push(new SliceIterator<DynamicComposite>(connectionScanner, slice, connectionParser, skipFirst));
       }
-      
-      //no connection type defined, get all connections
-      else{
-        this.results.push(new ConnectionIterator(headEntity, slice, RelationManagerImpl.this)); 
+
+      // no connection type defined, get all connections
+      else {
+        this.results.push(new ConnectionIterator(headEntity, slice, RelationManagerImpl.this));
       }
 
     }
