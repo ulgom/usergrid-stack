@@ -238,6 +238,11 @@
 
         <exclusions>
           <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>servlet-api</artifactId>
+          </exclusion>
+
+          <exclusion>
             <groupId>org.antlr</groupId>
             <artifactId>antlr-runtime</artifactId>
           </exclusion>
