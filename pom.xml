@@ -23,7 +23,8 @@
     <hector-om-version>2.0-01</hector-om-version>
     <hector-version>1.1-2-1</hector-version>
     <hector-test-version>1.1-2</hector-test-version>
-    <jackson-version>2.2.0</jackson-version>
+    <fasterxml-version>2.2.0</fasterxml-version>
+    <jackson-version>1.9.9</jackson-version>
     <jclouds.version>1.5.0-beta.3</jclouds.version>
     <jersey-version>1.17</jersey-version>
     <jetty.version>8.1.8.v20121106</jetty.version>
@@ -586,31 +587,31 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>${jackson-version}</version>
+        <version>${fasterxml-version}</version>
       </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-core</artifactId>
-        <version>${jackson-version}</version>
+        <version>${fasterxml-version}</version>
       </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>${jackson-version}</version>
+        <version>${fasterxml-version}</version>
       </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.jaxrs</groupId>
         <artifactId>jackson-jaxrs-json-provider</artifactId>
-        <version>${jackson-version}</version>
+        <version>${fasterxml-version}</version>
       </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.module</groupId>
         <artifactId>jackson-module-jaxb-annotations</artifactId>
-        <version>${jackson-version}</version>
+        <version>${fasterxml-version}</version>
       </dependency>
 
       <dependency>
@@ -622,7 +623,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-smile</artifactId>
-        <version>${jackson-version}</version>
+        <version>${fasterxml-version}</version>
       </dependency>
 
       <dependency>
@@ -1279,12 +1280,6 @@
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
         <version>1.27</version>
-      </dependency>
-
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>3.0.1</version>
       </dependency>
 
       <dependency>
