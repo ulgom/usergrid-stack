@@ -45,6 +45,7 @@
         <includes>
           <include>**/*.xml</include>
           <include>**/*.properties</include>
+          <include>**/*.json</include>
         </includes>
       </testResource>
     </testResources>
@@ -87,6 +88,7 @@
             <goals>
               <goal>test-jar</goal>
             </goals>
+
             <configuration>
               <includes>
                 <include>**/org/usergrid/**</include>
@@ -312,11 +314,13 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- TODO - make this test scope ? -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
     </dependency>
 
+    <!-- TODO - make this test scope ? -->
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
