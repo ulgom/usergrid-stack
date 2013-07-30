@@ -30,8 +30,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.catalina.startup.Tomcat;
-import org.codehaus.jackson.JsonNode;
+import com.sun.jersey.api.client.WebResource;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -42,7 +43,6 @@ import org.usergrid.cassandra.CassandraRunner;
 import org.usergrid.java.client.Client;
 import org.usergrid.management.ManagementService;
 
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
@@ -215,7 +215,7 @@ public abstract class AbstractRestTest extends JerseyTest {
         .queryParam("username", name).queryParam("password", password).accept(MediaType.APPLICATION_JSON)
         .get(JsonNode.class);
 
-    String userToken = node.get("access_token").getTextValue();
+    String userToken = node.get("access_token").textValue();
     logger.info("returning user token: {}", userToken);
     return userToken;
 
@@ -289,7 +289,7 @@ public abstract class AbstractRestTest extends JerseyTest {
         .queryParam("username", user).queryParam("password", password).accept(MediaType.APPLICATION_JSON)
         .get(JsonNode.class);
 
-    String mgmToken = node.get("access_token").getTextValue();
+    String mgmToken = node.get("access_token").textValue();
     logger.info("got mgmt token: {}", mgmToken);
     return mgmToken;
 

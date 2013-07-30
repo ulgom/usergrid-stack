@@ -121,7 +121,14 @@
       <version>${project.version}</version>
       <type>war</type>
     </dependency>
-   
+
+    <dependency>
+      <groupId>org.usergrid</groupId>
+      <artifactId>usergrid-rest</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+      <classifier>compiled-jsp</classifier>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>

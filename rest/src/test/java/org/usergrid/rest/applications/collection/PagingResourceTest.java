@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.usergrid.java.client.entities.Entity;
 import org.usergrid.java.client.response.ApiResponse;
@@ -163,7 +163,7 @@ public class PagingResourceTest extends RestContextTest {
   private static ObjectMapper mapper = new ObjectMapper();
 
   private static final ApiResponse parse(JsonNode response) throws Exception {
-    return mapper.readValue(response, ApiResponse.class);
+    return mapper.readValue(response.traverse(), ApiResponse.class);
   }
 
 }
