@@ -48,10 +48,6 @@ public class EntityResourceTest extends RestContextTest {
         .type(MediaType.APPLICATION_JSON_TYPE)
         .delete(ClientResponse.class);
 
-    System.out.println("hihi");
-
-
-
   }
 
 }
