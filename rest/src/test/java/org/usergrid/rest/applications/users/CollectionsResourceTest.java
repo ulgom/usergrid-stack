@@ -133,4 +133,58 @@ public class CollectionsResourceTest extends AbstractRestTest {
 
         assertEquals(1, queryResponse.get("entities").size());
     }
+
+
+  @Test
+  public void stringWithPlus() {
+    Map<String, String> payload = hashMap("summaryOverview", "My Summary").map("caltype", "personal");
+
+    JsonNode node = resource().path("/test-organization/test-app")
+        .queryParam("access_token", access_token).accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class, payload);
+
+
+    UUID id = getEntityId(node, 0);
+
+    //post a second entity
+
+
+    payload = hashMap("summaryOverview", "Make +Summary").map("caltype", "personal");
+
+    node = resource().path("/test-organization/test-app")
+        .queryParam("access_token", access_token).accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class, payload);
+
+
+    //query for the first entity
+
+    //String query = "summaryOverview = 'My Summary'";
+    String query = "summaryOverview contains '+Summary'";
+
+    JsonNode queryResponse =
+        resource().path("/test-organization/test-app")
+            .queryParam("access_token", access_token).queryParam("ql", query).accept(MediaType.APPLICATION_JSON)
+            .type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+
+
+    UUID returnedId = getEntityId(queryResponse, 0);
+
+    assertEquals(id, returnedId);
+
+    assertEquals(1, queryResponse.get("entities").size());
+
+    query = "summaryOverview = '+Summary'";
+
+    queryResponse =
+        resource().path("/test-organization/test-app")
+            .queryParam("access_token", access_token).queryParam("ql", query).accept(MediaType.APPLICATION_JSON)
+            .type(MediaType.APPLICATION_JSON_TYPE).get(JsonNode.class);
+
+
+    returnedId = getEntityId(queryResponse, 0);
+
+    assertEquals(id, returnedId);
+
+    assertEquals(1, queryResponse.get("entities").size());
+  }
 }
