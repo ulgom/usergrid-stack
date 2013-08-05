@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.usergrid.utils.MapUtils.hashMap;
 
 /**
@@ -123,6 +124,29 @@ public class AndOrQueryTest extends RestContextTest {
     int totalEntitiesContained = madeupStuff.verificationOfQueryResults(correctValues,false,inquisitiveQuery);
 
     assertEquals(1000,totalEntitiesContained);
+  }
+
+  @Test //USERGRID-1581
+  public void parsePlusPlus() {
+
+    CustomCollection madeupStuff = collection("imagination");
+    Map plusplus = hashMap("dogName","Ruff") ;
+    plusplus.put("lang","Lolcats++");
+
+    Map noplus = hashMap("dogName","Ruff");
+    noplus.put("lang","Lolcats");
+
+    madeupStuff.create(plusplus);
+    madeupStuff.create(noplus);
+
+    String query = "select * where dogName = 'Ruff' and lang = 'Lolcats++'";
+
+    JsonNode node = madeupStuff.withQuery(query).get();
+
+    assertNotNull(node.get("entities").get(0));
+
+    assertEquals("Lolcats++",node.get("entities").get(0).get("lang").getTextValue());
+
   }
 
   @Ignore//Test to make sure all 1000 exist with a regular query
