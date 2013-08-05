@@ -147,10 +147,8 @@ public abstract class ValueResource extends NamedResource {
   
   /**
    * Get entities in this collection. Cursor is optional
-   * 
-   * @param query
-   * @param cursor
-   * @return
+   *
+   * @return JsonNode
    */
   protected JsonNode getInternal() {
 
@@ -182,10 +180,8 @@ public abstract class ValueResource extends NamedResource {
 
   /**
    * Get entities in this collection. Cursor is optional
-   * 
-   * @param query
-   * @param cursor
-   * @return
+   *
+   * @return JsonNode
    */
   protected JsonNode deleteInternal() {
 
