@@ -62,11 +62,6 @@ public class Application extends ValueResource {
     return node.get("access_token").asText();
   }
 
-  @Override
-  public JsonNode put(Map<String, ?> entity) {
-    return super.put(entity);    // TODO: Customise this generated block
-  }
-
   public UsersCollection users() {
     return new UsersCollection(this);
   }
