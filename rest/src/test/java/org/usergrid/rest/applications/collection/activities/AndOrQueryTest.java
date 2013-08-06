@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.usergrid.utils.MapUtils.hashMap;
 
 /**
@@ -153,6 +154,38 @@ public class AndOrQueryTest extends RestContextTest {
     int totalEntitiesContained = madeupStuff.countEntities(inquisitiveQuery);
 
     assertEquals(1000,totalEntitiesContained);
+
+  }
+
+  @Test       //USERGRID-1333
+  public void objectActivitiesQuery() {
+
+    CustomCollection activities = collection("activities");
+
+    Map actor = hashMap("displayName", "Erin");
+    Map props = new HashMap();
+
+
+
+    //JsonNode[] correctValues = new JsonNode[numValuesTested];
+
+    props.put("actor", actor);
+    props.put("verb", "go");
+    props.put("content", "bragh");
+
+    activities.createEntitiesWithOrdinal(props,1);
+
+
+    String inCorrectQuery = "select * where object.displayName = 'Erin'";
+
+    JsonNode node = activities.withQuery(inCorrectQuery).get();
+
+    assertNotNull(node.get("entities").get(0));
+    assertEquals("Erin",node.get("entities").get(0).get("displayName").getTextValue());
+
+
+    //activities.verificationOfQueryResults(correctValues,true,inCorrectQuery);
+
 
   }
 
