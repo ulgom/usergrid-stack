@@ -10,6 +10,8 @@ import java.util.Map;
 import org.junit.Test;
 import com.sun.jersey.api.client.ClientResponse;
 import org.usergrid.rest.test.resource.app.CustomEntity;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 /**
@@ -33,7 +35,7 @@ public class EntityResourceTest extends RestContextTest {
         .queryParam("access_token", access_token)
         .accept(MediaType.APPLICATION_JSON)
         .type(MediaType.APPLICATION_JSON_TYPE)
-        .post(JsonNode.class,payload);//, payload);
+        .post(JsonNode.class,payload);
 
     String uuid = node.get("entities").get(0).get("uuid").getTextValue();
     node = resource().path("/test-organization/test-app/users/me/owns/items")
@@ -42,11 +44,15 @@ public class EntityResourceTest extends RestContextTest {
         .type(MediaType.APPLICATION_JSON_TYPE)
         .get(JsonNode.class);
 
+    assertNotNull(node.get("entities").get(0));
+
     ClientResponse deleteResponse = resource().path("/test-organization/test-app/users/me/owns/items/"+uuid)
         .queryParam("access_token", access_token)
         .accept(MediaType.TEXT_HTML)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .delete(ClientResponse.class);
+
+    assertEquals(200,deleteResponse.getStatus());
 
   }
 
