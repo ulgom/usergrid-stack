@@ -84,11 +84,6 @@ public class OrderByTest extends RestContextTest {
     }
   }
 
-  /*
-   * public JsonNode entityIndex(JsonNode container, int index) { return
-   * container.get("entities").get(index); }
-   */
-
   @Test
   // USERGRID-1521
   public void orderByReturnCorrectResults() {
@@ -138,4 +133,38 @@ public class OrderByTest extends RestContextTest {
     
     assertEquals("Paged to last result", -1, index);
   }
+
+  @Test //USERGRID-1091
+  public void orderbyFailLoud () {
+
+    CustomCollection activities = collection("activities");
+
+    Map actor = hashMap("displayName", "Erin");
+    Map props = new HashMap();
+    int checkResultsNum = 0;
+
+    props.put("actor", actor);
+    props.put("verb", "go");
+    props.put("content", "bragh");
+
+    for (int i = 0; i < 20; i++) {
+      props.put("ordinal", i);
+      JsonNode activity = activities.create(props);
+    }
+
+    String query = "order by created";
+
+    JsonNode incorrectNode = activities.withQuery(query).withLimit(5).get();
+
+    assertEquals(5, incorrectNode.get("entities").size());
+
+    while (checkResultsNum < 5)
+    {
+      assertEquals(activities.entityIndex(query, checkResultsNum),
+          activities.entityIndexLimit(query, 5, checkResultsNum));
+      checkResultsNum++;
+    }
+
+  }
+
 }
