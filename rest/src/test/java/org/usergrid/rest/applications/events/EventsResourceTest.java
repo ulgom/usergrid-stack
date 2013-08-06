@@ -214,6 +214,101 @@ public class EventsResourceTest extends AbstractRestTest {
   }
 
   @Test
+  public void testCounterDecement() {
+
+    Map<String, Object> payload = new LinkedHashMap<String, Object>();
+    payload.put("timestamp", 0);
+    payload.put("category", "testing");
+    payload.put("counters", new LinkedHashMap<String, Object>() {
+      {
+        put("decrement", 2);
+      }
+    });
+
+    JsonNode node = resource().path("/test-organization/test-app/events")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    assertNotNull(node.get("entities"));
+
+    JsonNode rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("counter","decrement")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals("decrement",rest.get("counters").get(0).get("name").getTextValue());
+    assertEquals(2,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
+    //JsonNode rest = null;
+
+    for(int i = 0; i < 1000; i++) {
+      node = resource().path("/test-organization/test-app/events")
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .post(JsonNode.class, payload);
+    }
+
+    rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("counter","decrement")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals(2002,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
+
+    payload = new LinkedHashMap<String, Object>();
+    payload.put("timestamp", 0);
+    payload.put("category", "testing");
+    payload.put("counters", new LinkedHashMap<String, Object>() {
+      {
+        put("decrement", -2);
+      }
+    });
+
+    for(int i = 0; i < 1000; i++) {
+      node = resource().path("/test-organization/test-app/events")
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .post(JsonNode.class, payload);
+    }
+
+    rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("counter","decrement")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals(2,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
+
+    for(int i = 0; i < 1000; i++) {
+      node = resource().path("/test-organization/test-app/events")
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .post(JsonNode.class, payload);
+    }
+
+    rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("counter","decrement")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals(-1998,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
+
+
+
+  }
+
+  @Test
   public void testCounterReset() {
 
     Map<String, Object> payload = new LinkedHashMap<String, Object>();
