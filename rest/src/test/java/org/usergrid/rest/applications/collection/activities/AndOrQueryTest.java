@@ -106,6 +106,118 @@ public class AndOrQueryTest extends RestContextTest {
     activities.verificationOfQueryResults(correctValues,true,inCorrectQuery);
   }
 
+  @Test
+  public void inSyntax() throws Exception{
+
+    CustomCollection activities = collection("activities");
+
+    Map actor = hashMap("displayName", "Erin");
+    Map props = new HashMap();
+    props.put("actor", actor);
+    props.put("content","bragh");
+
+    for (int i = 0; i < 20; i++) {
+
+      props.put("verb","go");
+      props.put("ordinal", i);
+      JsonNode activity = activities.create(props);
+    }
+
+    String query = "select * where verb in ('go')";
+    JsonNode incorrectNode = activities.withQuery(query).get();
+
+    assertEquals(20, incorrectNode.get("entities").size());
+
+  }
+
+  @Test
+  public void inTwoSyntax() throws Exception{
+
+    CustomCollection activities = collection("activities");
+
+    Map actor = hashMap("displayName", "Erin");
+    Map props = new HashMap();
+    props.put("actor", actor);
+    props.put("content","bragh");
+
+    for (int i = 0; i < 20; i++) {
+
+      if(i < 10)
+        props.put("verb","go");
+      else
+        props.put("verb","stop");
+
+      props.put("ordinal", i);
+      JsonNode activity = activities.create(props);
+    }
+
+    String query = "select * where verb in ('go','stop')";
+    JsonNode incorrectNode = activities.withQuery(query).get();
+
+    assertEquals(20, incorrectNode.get("entities").size());
+
+  }
+
+  @Test
+  public void inThreeSyntax() throws Exception{
+
+    CustomCollection activities = collection("activities");
+
+    Map actor = hashMap("displayName", "Erin");
+    Map props = new HashMap();
+    props.put("actor", actor);
+    props.put("content","bragh");
+
+    for (int i = 0; i < 30; i++) {
+
+      if(i < 10)
+        props.put("verb","go");
+      else if (10 < i && i < 20)
+        props.put("verb","stop");
+      else
+        props.put("verb","in motion");
+
+      props.put("ordinal", i);
+      JsonNode activity = activities.create(props);
+    }
+
+    String query = "select * where verb in ('go','stop','in motion')";
+    JsonNode incorrectNode = activities.withQuery(query).get();
+
+    assertEquals(30, incorrectNode.get("entities").size());
+
+  }
+
+  @Test
+  public void inInterlacedSyntax() throws Exception{
+
+    CustomCollection activities = collection("activities");
+
+    Map actor = hashMap("displayName", "Erin");
+    Map props = new HashMap();
+    props.put("actor", actor);
+    props.put("content","bragh");
+
+    for (int i = 0; i < 30; i++) {
+
+      if(i%2 == 0)
+        props.put("verb","go");
+      else if (i%3 == 0)
+        props.put("verb","stop");
+      else
+        props.put("verb","in motion");
+
+      props.put("ordinal", i);
+      JsonNode activity = activities.create(props);
+    }
+
+    String query = "select * where verb in ('go','stop')";
+    JsonNode incorrectNode = activities.withQuery(query).get();
+
+    assertEquals(30, incorrectNode.get("entities").size());
+
+  }
+
   @Test //Check to make sure that asc works
   public void queryCheckAsc() throws Exception{
 
