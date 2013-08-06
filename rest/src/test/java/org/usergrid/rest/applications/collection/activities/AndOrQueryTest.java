@@ -165,16 +165,11 @@ public class AndOrQueryTest extends RestContextTest {
     Map actor = hashMap("displayName", "Erin");
     Map props = new HashMap();
 
-
-
-    //JsonNode[] correctValues = new JsonNode[numValuesTested];
-
     props.put("actor", actor);
     props.put("verb", "go");
     props.put("content", "bragh");
 
     activities.createEntitiesWithOrdinal(props,1);
-
 
     String inCorrectQuery = "select * where object.displayName = 'Erin'";
 
@@ -182,10 +177,6 @@ public class AndOrQueryTest extends RestContextTest {
 
     assertNotNull(node.get("entities").get(0));
     assertEquals("Erin",node.get("entities").get(0).get("displayName").getTextValue());
-
-
-    //activities.verificationOfQueryResults(correctValues,true,inCorrectQuery);
-
 
   }
 
