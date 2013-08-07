@@ -147,6 +147,129 @@ public class EventsResourceTest extends AbstractRestTest {
   }
 
   @Test
+  public void testCounterCreations1000() {
+
+
+    JsonNode node = null;
+    Map<String, Object> payload = new LinkedHashMap<String, Object>();
+    payload.put("timestamp", 0);
+    payload.put("category", "testing");
+    payload.put("counters", new LinkedHashMap<String, Object>() {
+      {
+        put("created", 1);
+      }
+    });
+
+    for(int index = 0; index<1000;index++) {
+
+      payload.put("counters", new LinkedHashMap<String, Object>() {
+
+        {
+          put("created"+System.currentTimeMillis(), 1);
+        }
+      });
+
+       node = resource().path("/test-organization/test-app/events")
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .post(JsonNode.class, payload);
+
+    }
+
+    JsonNode rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals(1009,rest.get("data").size());
+
+  }
+
+  @Test
+  public void testCounterCreations5000() {
+
+
+    JsonNode node = null;
+    Map<String, Object> payload = new LinkedHashMap<String, Object>();
+    payload.put("timestamp", 0);
+    payload.put("category", "testing");
+    payload.put("counters", new LinkedHashMap<String, Object>() {
+      {
+        put("created", 1);
+      }
+    });
+
+    for(int index = 0; index<5000;index++) {
+
+      payload.put("counters", new LinkedHashMap<String, Object>() {
+
+        {
+          put("created"+System.currentTimeMillis(), 1);
+        }
+      });
+
+      node = resource().path("/test-organization/test-app/events")
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .post(JsonNode.class, payload);
+
+    }
+
+    JsonNode rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals(5009,rest.get("data").size());
+
+  }
+
+  @Test
+  public void testCounterCreations1000000() {
+
+
+    JsonNode node = null;
+    Map<String, Object> payload = new LinkedHashMap<String, Object>();
+    payload.put("timestamp", 0);
+    payload.put("category", "testing");
+    payload.put("counters", new LinkedHashMap<String, Object>() {
+      {
+        put("created", 1);
+      }
+    });
+
+    for(int index = 0; index<1000000;index++) {
+
+      payload.put("counters", new LinkedHashMap<String, Object>() {
+
+        {
+          put("created"+System.currentTimeMillis(), 1);
+        }
+      });
+
+      node = resource().path("/test-organization/test-app/events")
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .post(JsonNode.class, payload);
+
+    }
+
+    JsonNode rest = resource().path("/test-organization/test-app/counters")
+        .queryParam("access_token", superAdminToken())
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals(1000009,rest.get("data").size());
+
+  }
+
+  @Test
   public void testCounterAddition() {
 
     Map<String, Object> payload = new LinkedHashMap<String, Object>();
@@ -303,8 +426,6 @@ public class EventsResourceTest extends AbstractRestTest {
         .get(JsonNode.class);
 
     assertEquals(-1998,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
-
-
 
   }
 
