@@ -26,7 +26,7 @@ public class PagingEntitiesTest  extends RestContextTest {
     CustomCollection activities = collection("activities");
 
     long created = 0;
-    int maxSize = 1500;
+    int maxSize = 22;
     long[] verifyCreated = new long[maxSize];
     Map actor = hashMap("displayName", "Erin");
     Map props = new HashMap();
