@@ -33,8 +33,8 @@ public class AndOrQueryTest extends RestContextTest {
     props.put("content", "bragh");
 
 
-    for (int i = 0; i < 2000; i++) {
-      if(i<1000)
+    for (int i = 0; i < 10; i++) {
+      if(i<5)
         props.put("madeup",false);
       else
         props.put("madeup",true);
@@ -45,9 +45,9 @@ public class AndOrQueryTest extends RestContextTest {
     }
 
     String errorQuery = "select * where created >= " + created + "AND madeup = true";
-    JsonNode incorrectNode = activities.withQuery(errorQuery).get();
+    JsonNode incorrectNode = activities.withQuery(errorQuery).withLimit(5).get();
 
-    assertEquals(10,incorrectNode.get("entities").size());
+    assertEquals(5,incorrectNode.get("entities").size());
 
   }
 
