@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.usergrid.utils.MapUtils.hashMap;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -133,4 +134,85 @@ public class CollectionsResourceTest extends AbstractRestTest {
 
         assertEquals(1, queryResponse.get("entities").size());
     }
+
+  @Test //USERGRID-1061
+  public void errorForQueryPuts() {
+    Map payload = new LinkedHashMap<String, Object>();
+
+    payload.put("name", "bob");
+
+    JsonNode node = resource().path("/test-organization/test-app/cities")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    payload.put("name", "moe");
+
+    node = resource().path("/test-organization/test-app/cities")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    payload.put("name", "blanket");
+
+    node = resource().path("/test-organization/test-app/cities")
+        .queryParam("ql", "select * where name = 'moe'")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .put(JsonNode.class, payload);
+
+    node = resource().path("/test-organization/test-app/cities")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    assertEquals("blanket", node.get("entities").get(1).get("name").getTextValue());
+
+    assertEquals(2, node.get("entities").size());
+
+  }
+
+  @Test //USERGRID-1061
+  public void errorForBlanketPuts() {
+    Map payload = new LinkedHashMap<String, Object>();
+    payload.put("name", "bob");
+
+    JsonNode node = resource().path("/test-organization/test-app/cities2")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    payload.put("name", "moe");
+
+    node = resource().path("/test-organization/test-app/cities2")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    payload.put("name", "blanket");
+
+    node = resource().path("/test-organization/test-app/cities2")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .put(JsonNode.class, payload);
+
+    node = resource().path("/test-organization/test-app/cities2")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+
+    assertEquals("bob", node.get("entities").get(0).get("name").getTextValue());
+    assertEquals("moe", node.get("entities").get(1).get("name").getTextValue());
+    assertEquals(2, node.get("entities").size());
+
+  }
 }
