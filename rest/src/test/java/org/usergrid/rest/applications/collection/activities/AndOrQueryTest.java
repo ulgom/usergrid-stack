@@ -112,17 +112,17 @@ public class AndOrQueryTest extends RestContextTest {
     CustomCollection madeupStuff = collection("imagination");
     Map character = hashMap("WhoHelpedYou","Ruff");
 
-    JsonNode[] correctValues = new JsonNode[1000];
+    JsonNode[] correctValues = new JsonNode[200];
 
 
-    correctValues = madeupStuff.createEntitiesWithOrdinal(character,1000);
+    correctValues = madeupStuff.createEntitiesWithOrdinal(character,200);
 
     String inquisitiveQuery = "select * where Ordinal gte 0 and Ordinal lte 2000 or WhoHelpedYou eq 'Ruff' ORDER BY " +
         "Ordinal asc";
 
     int totalEntitiesContained = madeupStuff.verificationOfQueryResults(correctValues,false,inquisitiveQuery);
 
-    assertEquals(1000,totalEntitiesContained);
+    assertEquals(200,totalEntitiesContained);
   }
 
   @Ignore//Test to make sure all 1000 exist with a regular query
