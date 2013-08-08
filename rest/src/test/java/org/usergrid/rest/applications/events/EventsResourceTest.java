@@ -154,18 +154,13 @@ public class EventsResourceTest extends AbstractRestTest {
     Map<String, Object> payload = new LinkedHashMap<String, Object>();
     payload.put("timestamp", 0);
     payload.put("category", "testing");
-    payload.put("counters", new LinkedHashMap<String, Object>() {
-      {
-        put("created", 1);
-      }
-    });
 
     for(int index = 0; index<1000;index++) {
 
       payload.put("counters", new LinkedHashMap<String, Object>() {
 
         {
-          put("created"+System.currentTimeMillis(), 1);
+          put("created1"+System.currentTimeMillis(), 1);
         }
       });
 
@@ -195,18 +190,13 @@ public class EventsResourceTest extends AbstractRestTest {
     Map<String, Object> payload = new LinkedHashMap<String, Object>();
     payload.put("timestamp", 0);
     payload.put("category", "testing");
-    payload.put("counters", new LinkedHashMap<String, Object>() {
-      {
-        put("created", 1);
-      }
-    });
 
     for(int index = 0; index<5000;index++) {
 
       payload.put("counters", new LinkedHashMap<String, Object>() {
 
         {
-          put("created"+System.currentTimeMillis(), 1);
+          put("created2"+System.currentTimeMillis(), 1);
         }
       });
 
@@ -236,18 +226,13 @@ public class EventsResourceTest extends AbstractRestTest {
     Map<String, Object> payload = new LinkedHashMap<String, Object>();
     payload.put("timestamp", 0);
     payload.put("category", "testing");
-    payload.put("counters", new LinkedHashMap<String, Object>() {
-      {
-        put("created", 1);
-      }
-    });
 
     for(int index = 0; index<1000000;index++) {
 
       payload.put("counters", new LinkedHashMap<String, Object>() {
 
         {
-          put("created"+System.currentTimeMillis(), 1);
+          put("created3"+System.currentTimeMillis(), 1);
         }
       });
 
