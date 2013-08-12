@@ -320,6 +320,66 @@ public class EventsResourceTest extends AbstractRestTest {
     assertEquals(4002,rest.get("counters").get(0).get("values").get(0).get("value").getIntValue());
 
   }
+  /*
+  There appears to be 3 ways to get the count of a collection:
+1. Do a get on the whole collection with a limit (only works up to 999). This returns 21:
+GET https://api.usergrid.com/1hotrod/sandbox/users?limit=999
+2. Do a get on the application. This returns 43:
+GET https://api.usergrid.com/1hotrod/sandbox/
+3. Do a get using the counter. This returns 16:
+https://api.usergrid.com/1hotrod/sandbox/counters?counter=application.collection.users
+The correct number is 21.
+
+   */
+
+  @Test
+  public void collectionGet() {
+
+
+    Map userPayload = new LinkedHashMap<String, Object>();
+
+    for(int i = 0; i < 20;i++) {
+      userPayload.put("username", "bob"+System.currentTimeMillis());
+
+      JsonNode node = resource().path("/test-organization/test-app/user")
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .post(JsonNode.class, userPayload);
+    }
+
+    JsonNode node = resource().path("/test-organization/test-app/user")
+        .queryParam("limit","999")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    int collectGet = node.get("entities").size();
+
+    node = resource().path("/test-organization/test-app")
+        .queryParam("limit","999")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    int regularGet = node.get("entities").size();
+
+    node = resource().path("/test-organization/test-app/counters")
+        .queryParam("counter","application.collection.users")
+        .queryParam("limit","999")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+
+    int superget = node.get("entities").size();
+    assertEquals(21,collectGet);
+    assertEquals(21,regularGet);
+    assertEquals(21,superget);
+
+  }
 
   @Test
   public void testCounterDecement() {
