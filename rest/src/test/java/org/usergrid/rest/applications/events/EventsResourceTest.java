@@ -115,7 +115,7 @@ public class EventsResourceTest extends AbstractRestTest {
 
 	}
 
-  @Test
+  @Test //USERGRID-1742
   public void testEventPostandGetUUID() {
 
     Map<String, Object> payload = new LinkedHashMap<String, Object>();
@@ -142,7 +142,5 @@ public class EventsResourceTest extends AbstractRestTest {
     }
 
   }
-
-
 
 }
