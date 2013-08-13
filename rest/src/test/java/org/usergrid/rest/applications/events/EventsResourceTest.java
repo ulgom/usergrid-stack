@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 
+import com.sun.jersey.api.client.UniformInterfaceException;
 import org.codehaus.jackson.JsonNode;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -113,5 +114,35 @@ public class EventsResourceTest extends AbstractRestTest {
 
 
 	}
+
+  @Test
+  public void testEventPostandGetUUID() {
+
+    Map<String, Object> payload = new LinkedHashMap<String, Object>();
+    payload.put("category", "testcat");
+    payload.put("timestamp","201111211437");
+
+    JsonNode node = resource().path("/test-organization/test-app/events")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    String uuid = node.get("entities").get(0).get("uuid").getTextValue();
+
+    try{
+    node = resource().path("/test-organization/test-app/events/"+uuid)
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+    }catch(UniformInterfaceException uie){
+      assertEquals(200,uie.getResponse().getStatus());
+      return;
+    }
+
+  }
+
+
 
 }
