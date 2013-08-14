@@ -100,7 +100,7 @@ public class ConnectionResourceTest extends RestContextTest {
 
   /*change things so that they say item instead of peeps*/
   @Test
-  public void realDeleteQueryTest() {
+  public void deleteConnectionTest() {
 
    // CustomEntity items = new CustomEntity("item", null);
 
@@ -178,124 +178,6 @@ public class ConnectionResourceTest extends RestContextTest {
 
   }
 
-  /*change things so that they say item instead of peeps*/
-  @Test//("still doesn't represent dino's unauth access issue ")   //USERGRID-1713
-  public void dinoDeleteQueryTest() {
-
-    // CustomEntity items = new CustomEntity("item", null);
-
-    CustomCollection activities = collection("items");
-
-    //Map stuff = hashMap("type", "chicken");
-
-    //activities.create(stuff);
-
-
-    Map<String, Object> payload = new LinkedHashMap<String, Object>();
-    payload.put("username", "todd");
-
-    Map<String, Object> permissionLoad = new LinkedHashMap<String, Object>();
-
-
-    Map<String, Object> objectOfDesire = new LinkedHashMap<String, Object>();
-    objectOfDesire.put("codingmunchies", "doritoes");
-
-    JsonNode node = resource().path("/test-organization/test-app/users")
-        .queryParam("access_token", access_token)
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .post(JsonNode.class, payload);
-
-    payload.put("username", "scott");
-
-
-
-    node = resource().path("/test-organization/test-app/users")
-        .queryParam("access_token", access_token)
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .post(JsonNode.class, payload);
-
-    /*finish setting up the two users */
-
-
-    ClientResponse toddWant = resource().path("/test-organization/test-app/users/me/owns/items")
-        .queryParam("access_token", access_token)
-        .accept(MediaType.TEXT_HTML)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .post(ClientResponse.class, objectOfDesire);
-
-    assertEquals(200, toddWant.getStatus());
-
-    permissionLoad.put("permission","get,put,post,delete:/users/me/owns/**");
-
-    node = resource().path("/test-organization/test-app/roles/default")
-        .queryParam("access_token", access_token)
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .delete(JsonNode.class);
-
-    node = resource().path("/test-organization/test-app/roles/default")
-        .queryParam("access_token", access_token)
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .post(JsonNode.class, permissionLoad);
-
-    node = resource().path("/test-organization/test-app/items")
-        .queryParam("access_token", access_token)
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .get(JsonNode.class);
-
-    String uuid = node.get("entities").get(0).get("uuid").getTextValue();
-
-    try {
-      node = resource().path("/test-organization/test-app/users/me/owns/" + uuid)
-          .queryParam("access_token", access_token)
-          .accept(MediaType.APPLICATION_JSON)
-          .type(MediaType.APPLICATION_JSON_TYPE)
-          .get(JsonNode.class);
-      //assert (false);
-    } catch (UniformInterfaceException uie) {
-      assertEquals(200, uie.getResponse().getClientResponseStatus().getStatusCode());
-      return;
-    }
-
-    node = resource().path("/test-organization/test-app/users/me/owns/items/" + uuid)
-        .queryParam("access_token", access_token)
-        .accept(MediaType.APPLICATION_JSON)
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .delete(JsonNode.class);
-
-    try {
-      node = resource().path("/test-organization/test-app/users/me/owns/" + uuid)
-          .queryParam("access_token", access_token)
-          .accept(MediaType.APPLICATION_JSON)
-          .type(MediaType.APPLICATION_JSON_TYPE)
-          .get(JsonNode.class);
-      //assert (false);
-    } catch (UniformInterfaceException uie) {
-      assertEquals(404, uie.getResponse().getClientResponseStatus().getStatusCode());
-      return;
-    }
-
-    try {
-      node = resource().path("/test-organization/test-app/items/" + uuid)
-          .queryParam("access_token", access_token)
-          .accept(MediaType.APPLICATION_JSON)
-          .type(MediaType.APPLICATION_JSON_TYPE)
-          .get(JsonNode.class);
-      //assert (false);
-    } catch (UniformInterfaceException uie) {
-      assertEquals(200, uie.getResponse().getClientResponseStatus().getStatusCode());
-      return;
-    }
-
-    //assert(false);
-
-
-  }
-
   /*test stolen and refactored from PermissionsResourceTest */
   @Test
   public void applicationPermissions() throws Exception {
@@ -317,6 +199,7 @@ public class ConnectionResourceTest extends RestContextTest {
     Map<String, String> data = hashMap("name", "reviewer");
 
     String adminToken = managementService.getAccessTokenForAdminUser(orgs.getOwner().getUuid(), 0);
+
 
     JsonNode node = resource().path(String.format("/%s/%s/roles", orgname, applicationName))
         .queryParam("access_token", adminToken).accept(MediaType.APPLICATION_JSON)
@@ -346,16 +229,25 @@ public class ConnectionResourceTest extends RestContextTest {
     UUID userId = createRoleUser(orgs.getOrganization().getUuid(), appInfo.getId(), adminToken, "reviewer1",
         "reviewer1@usergrid.com");
 
+    String userToken = managementService.getAccessTokenForAppUser(appInfo.getId(),userId,64000);
+
     node = resource().path(String.format("/%s/%s/roles/reviewer/permissions", orgname, applicationName))
         .queryParam("access_token", adminToken)
         .accept(MediaType.APPLICATION_JSON)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .get(JsonNode.class);
 
+
     // grant this user the "reviewer" role
     node = resource().path(String.format("/%s/%s/users/reviewer1/roles/reviewer", orgname, applicationName))
         .queryParam("access_token", adminToken).accept(MediaType.APPLICATION_JSON)
         .type(MediaType.APPLICATION_JSON_TYPE).post(JsonNode.class);
+
+    node = resource().path(String.format("/%s/%s/roles/reviewer/users", orgname, applicationName))
+        .queryParam("access_token", adminToken)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
 
     assertNull(getError(node));
 
@@ -366,7 +258,8 @@ public class ConnectionResourceTest extends RestContextTest {
     objectOfDesire.put("codingmunchies", "doritoes");
 
     ClientResponse toddWant = resource().path(String.format("/%s/%s/users/reviewer1/owns/items", orgname,applicationName))
-        .queryParam("access_token", adminToken)
+        //.queryParam("access_token", adminToken)
+        .queryParam("access_token",userToken)
         .accept(MediaType.TEXT_HTML)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .post(ClientResponse.class, objectOfDesire);
@@ -381,7 +274,7 @@ public class ConnectionResourceTest extends RestContextTest {
     String uuid = node.get("entities").get(0).get("uuid").getTextValue();
 
     node = resource().path(String.format("/%s/%s/users/reviewer1/owns",orgname,applicationName))
-        .queryParam("access_token", adminToken)
+        .queryParam("access_token",userToken)
         .accept(MediaType.APPLICATION_JSON)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .get(JsonNode.class);
@@ -391,25 +284,31 @@ public class ConnectionResourceTest extends RestContextTest {
 
     try {
       node = resource().path(String.format("/%s/%s/users/reviewer1/owns/items/" + uuid,orgname,applicationName))
-          .queryParam("access_token", adminToken)
+          .queryParam("access_token",userToken)
           .accept(MediaType.APPLICATION_JSON)
           .type(MediaType.APPLICATION_JSON_TYPE)
           .get(JsonNode.class);
-      //assert (false);
     } catch (UniformInterfaceException uie) {
       assertEquals(200, uie.getResponse().getClientResponseStatus().getStatusCode());
       return;
     }
 
+    try {
     node = resource().path(String.format("/%s/%s/users/reviewer1/owns/items/" + uuid,orgname,applicationName))
-        .queryParam("access_token", adminToken)
+        //.queryParam("access_token", adminToken)
+        .queryParam("access_token",userToken)
+
         .accept(MediaType.APPLICATION_JSON)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .delete(JsonNode.class);
+  } catch (UniformInterfaceException uie) {
+    assertEquals(200, uie.getResponse().getClientResponseStatus().getStatusCode());
+    return;
+  }
 
     try {
     node = resource().path(String.format("/%s/%s/users/reviewer1/owns/items/" + uuid,orgname,applicationName))
-        .queryParam("access_token", adminToken)
+        .queryParam("access_token",userToken)
         .accept(MediaType.APPLICATION_JSON)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .get(JsonNode.class);
