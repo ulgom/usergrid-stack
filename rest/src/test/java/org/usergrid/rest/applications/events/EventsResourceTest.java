@@ -143,4 +143,46 @@ public class EventsResourceTest extends AbstractRestTest {
 
   }
 
+  @Test
+  public void putToUpdateEvents() {
+
+    Map<String, Object> payload = new LinkedHashMap<String, Object>();
+    payload.put("category", "testcat");
+    payload.put("timestamp","201111211437");
+
+    JsonNode node = resource().path("/test-organization/test-app/events")
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .post(JsonNode.class, payload);
+
+    String uuid = node.get("entities").get(0).get("uuid").getTextValue();
+    payload.put("category", "testbat");
+
+    try{
+      node = resource().path("/test-organization/test-app/events/"+uuid)
+          .queryParam("access_token", access_token)
+          .accept(MediaType.APPLICATION_JSON)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .put(JsonNode.class,payload);
+    }catch(UniformInterfaceException uie){
+      assertEquals(200,uie.getResponse().getStatus());
+      return;
+    }
+
+    try {
+    node = resource().path("/test-organization/test-app/events/"+uuid)
+        .queryParam("access_token", access_token)
+        .accept(MediaType.APPLICATION_JSON)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .get(JsonNode.class);
+  }catch(UniformInterfaceException uie){
+    assertEquals(200,uie.getResponse().getStatus());
+    return;
+  }
+    //need to add certain line that would verify that the testcat was updated to testbat. Not
+    //sure what the response for events would look like so I'm leaving it blank for now.
+
+  }
+
 }
