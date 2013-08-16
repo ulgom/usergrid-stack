@@ -24,12 +24,7 @@ import static org.junit.Assert.fail;
 import static org.usergrid.rest.applications.utils.TestUtils.getIdFromSearchResults;
 import static org.usergrid.utils.MapUtils.hashMap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import javax.ws.rs.core.MediaType;
 
@@ -47,7 +42,12 @@ import org.usergrid.java.client.response.ApiResponse;
 import org.usergrid.management.ApplicationInfo;
 import org.usergrid.management.OrganizationInfo;
 import org.usergrid.rest.AbstractRestTest;
+import org.usergrid.rest.RestContextTest;
 import org.usergrid.rest.applications.utils.UserRepo;
+import org.usergrid.rest.test.resource.CustomCollection;
+import org.usergrid.rest.test.resource.TestContext;
+import org.usergrid.rest.test.security.TestAppUser;
+import org.usergrid.rest.test.util.Context;
 import org.usergrid.utils.UUIDUtils;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
@@ -58,9 +58,10 @@ import com.sun.jersey.api.client.UniformInterfaceException;
  * @author tnine
  */
 //@Ignore
-public class UserResourceTest extends AbstractRestTest {
+public class UserResourceTest extends RestContextTest {
 
     private static Logger log = LoggerFactory.getLogger(UserResourceTest.class);
+
 
     @Test
     public void usernameQuery() {
@@ -419,18 +420,29 @@ public class UserResourceTest extends AbstractRestTest {
 
   @Test             //USERGRID-1929
   public void uuidMultipleQuery() {
-    UserRepo.INSTANCE.load(resource(), access_token);
-    UUID userId1 = UserRepo.INSTANCE.getByUserName("user1");
-    UUID userId2 = UserRepo.INSTANCE.getByUserName("user2");
-    UUID userId3 = UserRepo.INSTANCE.getByUserName("user3");
 
-    Query query = client.queryUsers(";"+userId1.toString() +";"+userId2.toString());
+    TestAppUser testUser1 = new TestAppUser("test1", "test", "test1@usergrid.org");
+    testUser1.create(context);
 
-    ApiResponse response = query.getResponse();
+    TestAppUser testUser2 = new TestAppUser("test2", "test", "test2@usergrid.org");
+    testUser2.create(context);
 
-    int nonOrderedSize = response.getEntities().size();
+    TestAppUser testUser3 = new TestAppUser("test3", "test", "test3@usergrid.org");
+    testUser3.create(context);
 
-    assertEquals(2,nonOrderedSize);
+
+    //get the response   from the url of /org/app/users;uuid1;uuid2
+    CustomCollection matrixCollection = context.application().collection(String.format("users;%s;%s",
+        testUser1.getUuid(), testUser2.getUuid()));
+
+
+    JsonNode response = matrixCollection.get();
+
+    assertEquals("First user correct", testUser1.getUuid(), getEntityId(response, 0));
+
+    assertEquals("Second user correct", testUser2.getUuid(), getEntityId(response, 1));
+
+    assertNull("Third entity not returned", getEntity(response, 2));
 
   }
 
