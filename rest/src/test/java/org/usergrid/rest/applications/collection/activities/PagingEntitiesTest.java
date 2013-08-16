@@ -1,5 +1,6 @@
 package org.usergrid.rest.applications.collection.activities;
 
+import com.sun.jersey.api.client.UniformInterfaceException;
 import org.apache.commons.lang.ArrayUtils;
 import org.codehaus.jackson.JsonNode;
 import org.junit.Rule;
@@ -31,7 +32,7 @@ public class PagingEntitiesTest  extends AbstractRestIT {
     CustomCollection activities = context.collection("activities");
 
     long created = 0;
-    int maxSize = 1500;
+    int maxSize = 20;
     long[] verifyCreated = new long[maxSize];
     Map actor = hashMap("displayName", "Erin");
     Map props = new HashMap();
@@ -51,14 +52,14 @@ public class PagingEntitiesTest  extends AbstractRestIT {
     String query = "select * where created >= " + created;
 
 
-    JsonNode node = activities.query(query,"limit","2"); //activities.query(query,"");
+    JsonNode node = activities.withQuery(query).withLimit(2).get();//activities.query(query,"limit","2");
     int index = 0;
-    while (node.get("entities").get("created") != null)
+    while (node.get("entities").get(0) != null)
     {
       assertEquals(2,node.get("entities").size());
 
       if(node.get("cursor") != null)
-        node = activities.query(query,"cursor",node.get("cursor").toString());
+        node = activities.withQuery(query).withCursor(node.get("cursor").toString()).withLimit(2).get();
 
       else
         break;
@@ -103,5 +104,51 @@ public class PagingEntitiesTest  extends AbstractRestIT {
     int totalEntitiesContained = activities.countEntities(query);
 
     assertEquals(5, totalEntitiesContained);
+  }
+
+  @Test //USERGRID-911
+  public void pageIncorrectCursor(){
+
+    CustomCollection activities = context.collection("activities");
+
+    long created = 0;
+    int maxSize = 20;
+    long[] verifyCreated = new long[maxSize];
+    Map actor = hashMap("displayName", "Erin");
+    Map props = new HashMap();
+
+
+    props.put("actor", actor);
+    props.put("verb","go");
+
+    for (int i = 0; i < maxSize; i++) {
+
+      props.put("ordinal", i);
+      JsonNode activity = activities.create(props);
+      verifyCreated[i] = activity.findValue("created").getLongValue();
+      if (i == 0) { created = activity.findValue("created").getLongValue(); }
+    }
+    ArrayUtils.reverse(verifyCreated);
+    String query = "select * where created >= " + created;
+
+
+    JsonNode node = activities.withQuery(query).withLimit(2).get();//activities.query(query,"limit","2");
+    int index = 0;
+    try{
+    while (node.get("entities").get(0) != null)
+    {
+      assertEquals(2,node.get("entities").size());
+
+      if(node.get("cursor") != null)
+        node = activities.withQuery(query).withCursor("dddx"+node.get("cursor").toString()).withLimit(2).get();
+
+      else
+        break;
+
+    }
+    }catch(UniformInterfaceException uie){
+      assertEquals("error message",uie.getMessage());
+    }
+
   }
 }
