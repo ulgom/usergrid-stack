@@ -21,13 +21,13 @@ import static org.usergrid.utils.MapUtils.hashMap;
  * @author ApigeeCorporation
  * @since 4.0
  */
-public class PagingEntitiesTest  extends AbstractRestIT {
+public class PagingEntitiesTest extends AbstractRestIT {
 
   @Rule
-  public TestContextSetup context = new TestContextSetup( this );
+  public TestContextSetup context = new TestContextSetup(this);
 
   @Test //USERGRID-266
-  public void pageThroughConnectedEntities(){
+  public void pageThroughConnectedEntities() {
 
     CustomCollection activities = context.collection("activities");
 
@@ -39,14 +39,16 @@ public class PagingEntitiesTest  extends AbstractRestIT {
 
 
     props.put("actor", actor);
-    props.put("verb","go");
+    props.put("verb", "go");
 
     for (int i = 0; i < maxSize; i++) {
 
       props.put("ordinal", i);
       JsonNode activity = activities.create(props);
       verifyCreated[i] = activity.findValue("created").getLongValue();
-      if (i == 0) { created = activity.findValue("created").getLongValue(); }
+      if (i == 0) {
+        created = activity.findValue("created").getLongValue();
+      }
     }
     ArrayUtils.reverse(verifyCreated);
     String query = "select * where created >= " + created;
@@ -54,11 +56,10 @@ public class PagingEntitiesTest  extends AbstractRestIT {
 
     JsonNode node = activities.withQuery(query).withLimit(2).get();//activities.query(query,"limit","2");
     int index = 0;
-    while (node.get("entities").get(0) != null)
-    {
-      assertEquals(2,node.get("entities").size());
+    while (node.get("entities").get(0) != null) {
+      assertEquals(2, node.get("entities").size());
 
-      if(node.get("cursor") != null)
+      if (node.get("cursor") != null)
         node = activities.withQuery(query).withCursor(node.get("cursor").toString()).withLimit(2).get();
 
       else
@@ -69,7 +70,7 @@ public class PagingEntitiesTest  extends AbstractRestIT {
   }
 
   @Test //USERGRID-1253
-  public void pagingQueryReturnCorrectResults() throws Exception{
+  public void pagingQueryReturnCorrectResults() throws Exception {
 
     CustomCollection activities = context.collection("activities");
 
@@ -84,22 +85,24 @@ public class PagingEntitiesTest  extends AbstractRestIT {
 
     for (int i = 0; i < maxSize; i++) {
 
-      if(i > 17 && i < 23)
-        props.put("verb","stop");
+      if (i > 17 && i < 23)
+        props.put("verb", "stop");
       else
-        props.put("verb","go");
+        props.put("verb", "go");
       props.put("ordinal", i);
       JsonNode activity = activities.create(props);
       verifyCreated[i] = activity.findValue("created").getLongValue();
-      if (i == 18) { created = activity.findValue("created").getLongValue(); }
+      if (i == 18) {
+        created = activity.findValue("created").getLongValue();
+      }
     }
 
     String query = "select * where created >= " + created + " or verb = 'stop'";
 
     JsonNode node = activities.withQuery(query).get();
 
-    for(int index = 0; index < 5; index++)
-      assertEquals(verifyCreated[maxSize-1-index],node.get("entities").get(index).get("created").getLongValue());
+    for (int index = 0; index < 5; index++)
+      assertEquals(verifyCreated[maxSize - 1 - index], node.get("entities").get(index).get("created").getLongValue());
 
     int totalEntitiesContained = activities.countEntities(query);
 
@@ -107,7 +110,7 @@ public class PagingEntitiesTest  extends AbstractRestIT {
   }
 
   @Test //USERGRID-911
-  public void pageIncorrectCursor(){
+  public void pageIncorrectCursor() {
 
     CustomCollection activities = context.collection("activities");
 
@@ -119,14 +122,16 @@ public class PagingEntitiesTest  extends AbstractRestIT {
 
 
     props.put("actor", actor);
-    props.put("verb","go");
+    props.put("verb", "go");
 
     for (int i = 0; i < maxSize; i++) {
 
       props.put("ordinal", i);
       JsonNode activity = activities.create(props);
       verifyCreated[i] = activity.findValue("created").getLongValue();
-      if (i == 0) { created = activity.findValue("created").getLongValue(); }
+      if (i == 0) {
+        created = activity.findValue("created").getLongValue();
+      }
     }
     ArrayUtils.reverse(verifyCreated);
     String query = "select * where created >= " + created;
@@ -134,20 +139,20 @@ public class PagingEntitiesTest  extends AbstractRestIT {
 
     JsonNode node = activities.withQuery(query).withLimit(2).get();//activities.query(query,"limit","2");
     int index = 0;
-    try{
-    while (node.get("entities").get(0) != null)
-    {
-      assertEquals(2,node.get("entities").size());
+    try {
+      while (node.get("entities").get(0) != null) {
+        assertEquals(2, node.get("entities").size());
 
-      if(node.get("cursor") != null)
-        node = activities.withQuery(query).withCursor("dddx"+node.get("cursor").toString()).withLimit(2).get();
+        if (node.get("cursor") != null)
+          node = activities.withQuery(query).withCursor("dddx" + node.get("cursor").toString()).withLimit(2).get();
 
-      else
-        break;
+        else
+          break;
 
-    }
-    }catch(UniformInterfaceException uie){
-      assertEquals("error message",uie.getMessage());
+      }
+
+    } catch (UniformInterfaceException uie) {
+      assertEquals("error message", uie.getMessage());
     }
 
   }
