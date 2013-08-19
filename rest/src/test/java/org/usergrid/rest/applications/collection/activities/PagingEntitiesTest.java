@@ -150,7 +150,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-
+    /* What should this error message be?*/
     } catch (UniformInterfaceException uie) {
       assertEquals("error message", uie.getMessage());
     }
