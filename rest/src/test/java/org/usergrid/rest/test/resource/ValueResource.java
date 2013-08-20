@@ -17,11 +17,16 @@ package org.usergrid.rest.test.resource;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.org.apache.xml.internal.security.transforms.implementations.TransformBase64Decode;
+import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.JsonNode;
 
 import com.sun.jersey.api.client.WebResource;
@@ -187,7 +192,13 @@ public abstract class ValueResource extends NamedResource {
       resource = resource.queryParam("ql", query);
     }
 
+    /*put cursor checks for specific kind of queries here*/
     if (cursor != null) {
+      if(query != null) {
+        cursorValidation(cursor);
+        /*error check here*/
+      }
+
       resource = resource.queryParam("cursor", cursor);
     }
 
@@ -272,6 +283,48 @@ public abstract class ValueResource extends NamedResource {
 
     JsonNode node = this.withQuery(query).withLimit(limitSize).get();
     return node.get("entities").get(index);
+  }
+
+
+  protected void cursorValidation (String cursor) {
+
+    CharSequence orderby = "select*orderby";
+    CharSequence queryInput = "select*where";
+    String help = query.replaceAll("\\s","");
+
+
+    if((query.replaceAll("\\s","")).equals("select*") || help.contains(queryInput)) {
+      //assertEquals(122,cursor.length());
+      byte[] decoded = Base64.decodeBase64(cursor);
+      try {
+        System.out.println(new String(decoded, "UTF-8") + "\n");
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();  // TODO: Customise this generated block
+      }
+      if(cursor.length()!= 122)
+        throw new IllegalArgumentException("Invalid Cursor");
+
+      String empty = "";
+      String compare =  cursor.replaceAll("[a-zA-z+/0-9]",empty);
+      if(!empty.equals(compare)){
+              throw new IllegalArgumentException("Invalid Cursor");//  assertEquals(empty,compare);
+      }
+
+    }
+
+    if(query.replaceAll("\\s","").contains(orderby)) {
+      if(cursor.length()!= 120)
+        throw new IllegalArgumentException("Invalid Cursor");
+      String empty = "";
+      String compare =  cursor.replaceAll("[a-zA-z+/0-9]",empty);
+      if(!empty.equals(compare)){
+        throw new IllegalArgumentException("Invalid Cursor");//  assertEquals(empty,compare);
+      }
+
+    }
+
+
+
   }
 
   /**
