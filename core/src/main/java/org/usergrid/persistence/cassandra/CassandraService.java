@@ -149,8 +149,10 @@ public class CassandraService {
     db_logger.info("" + cluster.getKnownPoolHosts(false));
   }
 
-  public void init() throws Exception {
-    if (consistencyLevelPolicy == null) {
+  public void init() throws Exception
+  {
+    if (consistencyLevelPolicy == null)
+    {
       consistencyLevelPolicy = new ConfigurableConsistencyLevel();
       ((ConfigurableConsistencyLevel) consistencyLevelPolicy).setDefaultReadConsistencyLevel(HConsistencyLevel.ONE);
     }
@@ -657,7 +659,7 @@ public class CassandraService {
    *           the exception
    */
   @SuppressWarnings("unchecked")
-  public <K, N, V> Rows<K, N, V> getRows(Keyspace ko, Object columnFamily, List<K> keys, Set<String> columnNames,
+  public <K, N, V> Rows<K, N, V> getRows(Keyspace ko, Object columnFamily, Collection<K> keys, Collection<String> columnNames,
       Serializer<K> keySerializer, Serializer<N> nameSerializer, Serializer<V> valueSerializer) throws Exception {
 
     if (db_logger.isDebugEnabled()) {
@@ -1083,10 +1085,8 @@ public class CassandraService {
    *          the key suffix
    * @param keyIds
    *          the key ids
-   * @param setColumnValue
-   *          the set column value
-   * @throws Exception
-   *           the exception
+   * @param setColumnValue the set column value
+   * @throws Exception the exception
    */
   public void setIdList(Keyspace ko, UUID targetId, String keyPrefix, String keySuffix, List<UUID> keyIds)
       throws Exception {

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.usergrid.persistence;
 
+
 import static org.junit.Assert.*;
 import static org.usergrid.utils.JsonUtils.mapToFormattedJsonString;
 
@@ -26,27 +27,26 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.entities.SampleEntity;
 
-public class SchemaTest {
 
-  private static final Logger logger = LoggerFactory
-      .getLogger(SchemaTest.class);
+@Concurrent()
+public class SchemaTest
+{
+    private static final Logger LOG = LoggerFactory.getLogger( SchemaTest.class );
 
-  public SchemaTest() {
-  }
 
-  @Test
-  public void testTypes() throws Exception {
+    @Test
+    public void testTypes() throws Exception
+    {
+        LOG.info("" + Schema.getDefaultSchema().getEntityClass("sample_entity"));
+        LOG.info("" + Schema.getDefaultSchema().getEntityType(SampleEntity.class));
 
-    logger.info(""
-        + Schema.getDefaultSchema().getEntityClass("sample_entity"));
-    logger.info(""
-        + Schema.getDefaultSchema().getEntityType(SampleEntity.class));
+        SampleEntity entity = new SampleEntity();
+        LOG.info(entity.getType());
+    }
 
-    SampleEntity entity = new SampleEntity();
-    logger.info(entity.getType());
-  }
 
   @Test
   public void testThirdPartyEntityTypes() throws Exception {
@@ -57,14 +57,14 @@ public class SchemaTest {
 
     List<String> entitiesPackage = schema.getEntitiesPackage();
     for (String entityPackage : entitiesPackage) {
-      logger.info(entityPackage);
+      LOG.info(entityPackage);
     }
 
     Assert.assertEquals(schema.getEntityClass("simple"), Simple.class);
     Assert.assertEquals(schema.getEntityType(Simple.class), "simple");
 
     Simple entity = new Simple();
-    logger.info(entity.getType());
+    LOG.info(entity.getType());
   }
 
   @Test
@@ -76,28 +76,28 @@ public class SchemaTest {
   }
 
   public void dumpSetNames(String entityType) {
-    logger.info(entityType + " entity has the following sets: "
-        + Schema.getDefaultSchema().getDictionaryNames(entityType));
+    LOG.info(entityType + " entity has the following sets: "
+            + Schema.getDefaultSchema().getDictionaryNames(entityType));
   }
 
   @Test
   public void testJsonSchema() throws Exception {
 
-    logger.info(mapToFormattedJsonString(Schema.getDefaultSchema()
-        .getEntityJsonSchema("user")));
+    LOG.info(mapToFormattedJsonString(Schema.getDefaultSchema()
+            .getEntityJsonSchema("user")));
 
-    logger.info(mapToFormattedJsonString(Schema.getDefaultSchema()
-        .getEntityJsonSchema("test")));
+    LOG.info(mapToFormattedJsonString(Schema.getDefaultSchema()
+            .getEntityJsonSchema("test")));
   }
 
-  @Test
-  public void hasPropertyTyped() {
+    @Test
+    // @Ignore( "Fix this and enable: SchemaTest.hasPropertyTyped:97 null" )
+    public void hasPropertyTyped()
+    {
+        assertFalse( Schema.getDefaultSchema().hasProperty( "user", "" ) );
+        assertTrue(Schema.getDefaultSchema().hasProperty("user", "username"));
+    }
 
-    assertFalse(Schema.getDefaultSchema().hasProperty("user", ""));
-
-    assertTrue(Schema.getDefaultSchema().hasProperty("user", "username"));
-
-  }
 
   @Test
   public void hasPropertyDynamic() {

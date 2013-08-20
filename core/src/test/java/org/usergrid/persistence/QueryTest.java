@@ -18,11 +18,11 @@ package org.usergrid.persistence;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.Query.SortDirection;
 import org.usergrid.persistence.Query.SortPredicate;
 import org.usergrid.persistence.exceptions.QueryParseException;
@@ -30,14 +30,16 @@ import org.usergrid.persistence.query.tree.*;
 
 import static org.junit.Assert.*;
 
+
+@Concurrent()
 public class QueryTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(QueryTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(QueryTest.class);
 
   
   @Test
   public void testQueryTree() throws Exception {
-    logger.info("testQuery");
+    LOG.info("testQuery");
 
     Query q = new Query();
 
