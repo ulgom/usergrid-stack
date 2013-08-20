@@ -36,7 +36,7 @@ public class LockHelper {
   /**
    * Build a string path for this lock.  Since it's specifically for updating a property, the property
    * needs appended to the path.  If the property is null, it's getting deleted, so a lock on it isn't
-   * neccessary.  In that case, a no op lock is returned
+   * neccessary.  In thaqqt case, a no op lock is returned
    * 
    * @param applicationId
    * @param path

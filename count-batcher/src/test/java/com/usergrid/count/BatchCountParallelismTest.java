@@ -70,7 +70,7 @@ public class BatchCountParallelismTest {
 
     //exec.awaitTermination(3, TimeUnit.SECONDS);
     // we should have 100 total invocations of AbstractBatcher#add
-    assertEquals(101, batcher.invocationCounter.count());
+    assertEquals(102, batcher.invocationCounter.count());
     // we should have submitted 10 batches
 
     assertEquals(10, batcher.getBatchSubmissionCount());

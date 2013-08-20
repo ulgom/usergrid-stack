@@ -16,6 +16,7 @@
 package org.usergrid.locking.zookeeper;
 
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -192,5 +193,25 @@ public class ZookeeperLockManagerTest extends AbstractZooKeeperTest {
     return wasLocked;
   }
 
+    @Test
+    public void testGetHostPort(){
+        ZooKeeperLockManagerImpl lockImpl = new ZooKeeperLockManagerImpl("501", 1000,3);
+        assertEquals("501",lockImpl.getHostPort());
+
+    }
+
+    @Test
+    public void testGetSessionTimeout(){
+        ZooKeeperLockManagerImpl lockImpl = new ZooKeeperLockManagerImpl("501", 1000,3);
+        assertEquals(1000,lockImpl.getSessionTimeout());
+
+    }
+
+    @Test
+    public void testGetMaxAttempts(){
+        ZooKeeperLockManagerImpl lockImpl = new ZooKeeperLockManagerImpl("501", 1000,3);
+        assertEquals(3,lockImpl.getMaxAttempts());
+
+    }
 
 }

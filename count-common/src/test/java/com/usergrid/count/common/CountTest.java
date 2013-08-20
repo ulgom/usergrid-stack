@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2012 Apigee Corporation
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -66,6 +66,23 @@ public class CountTest {
         Count count = new Count("Counters","k1","c1",1);
         Count c2 = new Count("Counters","k1","c2",1);
         count.apply(c2);
+    }
+
+    @Test
+    public void testToString() {
+        Count count = new Count("Counters","k1","c1",1);
+        assertEquals("Counter Name: Counters:6b31:6331 value: 1",count.toString());
+    }
+
+    @Test
+    public void testGetKeySerializer() {
+        Count count = new Count("Counters","k1","c1",1);
+        assertEquals("class me.prettyprint.cassandra.serializers.StringSerializer",count.getKeySerializer().getClass().toString());
+    }
+    @Test
+    public void testGetColumnNameSerializer() {
+        Count count = new Count("Counters","k1","c1",1);
+        assertEquals("class me.prettyprint.cassandra.serializers.StringSerializer",count.getColumnNameSerializer().getClass().toString());
     }
 
 }

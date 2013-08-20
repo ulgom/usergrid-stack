@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.usergrid.locking.singlenode;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
@@ -24,11 +25,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.usergrid.locking.Lock;
@@ -39,19 +38,25 @@ public class SingleNodeLockTestSingleNode {
 
   private static final Logger logger = LoggerFactory.getLogger(SingleNodeLockTestSingleNode.class);
 
-  private LockManager manager;
+  private static LockManager manager;
 
   private ExecutorService pool;
 
-  @Before
-  public void setUp() throws Exception {
+  private  ReentrantLock tsLock = new ReentrantLock();
+
+  @BeforeClass
+  public static void setUp() throws Exception {
 
     manager = new SingleNodeLockManagerImpl();
 
-    // Create a different thread to lock the same node, that is held by the main
-    // thread.
-    pool = Executors.newFixedThreadPool(1);
   }
+
+   @Before
+    public void start()
+    {
+        // Create a different thread to lock the same node, that is held by the main thread.
+        pool = Executors.newFixedThreadPool(1);
+    }
 
   @After
   public void tearDown() throws Exception {
@@ -175,5 +180,19 @@ public class SingleNodeLockTestSingleNode {
 
     return wasLocked;
   }
+
+    @Test
+    public void testTryLockException(){
+        try{
+
+            SingleNodeLockImpl snl = new SingleNodeLockImpl(tsLock);
+
+            assertEquals(true,snl.tryLock(1, TimeUnit.MINUTES));     ;
+        }
+        catch ( UGLockException e)   {
+           assertEquals("Couldn't get the lock", e.getMessage());
+        }
+
+    }
 
 }

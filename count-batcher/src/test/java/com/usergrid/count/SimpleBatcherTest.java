@@ -16,21 +16,29 @@
 package com.usergrid.count;
 
 import com.usergrid.count.common.Count;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static junit.framework.Assert.assertEquals;
+
+
+
 
 /**
  * Unit test for simple SimpleBatcher.
  */
 public class SimpleBatcherTest {
+    protected static Logger logger = LoggerFactory
+            .getLogger(SimpleBatcherTest.class);
 
     @Before
     public void setupLocal() {
 
     }
-
 
     @Test
     public void testBatchSizeTrigger() {
@@ -48,5 +56,14 @@ public class SimpleBatcherTest {
         assertEquals(1, simpleBatcher.getBatchSubmissionCount());
 
     }
+
+    @Test
+    public void testSetBlockingSubmit() {
+        SimpleBatcher simpleBatcher = new SimpleBatcher();
+        simpleBatcher.setBlockingSubmit(false);
+        //assertEquals(false, simpleBatcher.get);
+    }
+
+
 
 }

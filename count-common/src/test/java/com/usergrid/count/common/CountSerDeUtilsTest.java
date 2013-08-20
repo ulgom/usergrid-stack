@@ -32,6 +32,9 @@ public class CountSerDeUtilsTest {
     private static final String SIMPLE_JSON =
             "{\"tableName\":\"Counters\",\"keyName\":\"k1\",\"columnName\":\"c1\",\"value\":1}";
 
+    private static final String ERROR_JSON =
+            "{\"tableName\":\"Counters\",\"keyName\"\"k1\",\"columnNam\":\"c1\",\"value\"1}";
+
     private static final String MIXED_TYPE_JSON =
           "{\"tableName\":\"Counters\",\"keyName\":1,\"columnName\":\"c1\",\"value\":1}";
 
@@ -69,4 +72,26 @@ public class CountSerDeUtilsTest {
       assertEquals("Counters", count.getTableName());
       assertEquals(1,count.getValue());
   }
+
+    @Test
+    public void testSerializeException() {
+        Count count = CountSerDeUtils.deserialize(SIMPLE_JSON);
+
+        try {
+            String sered = CountSerDeUtils.serialize(count);
+        } catch (CountTransportSerDeException cte) {
+            assertEquals("", cte.getMessage());
+            return;
+        }
+
+
+
+    }
+
+    @Test(expected = CountTransportSerDeException.class )
+    public void testDeserializerException() {
+        Count count = CountSerDeUtils.deserialize(ERROR_JSON);
+    }
+
+
 }

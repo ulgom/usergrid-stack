@@ -45,7 +45,7 @@ public class LockPathBuilder {
 	
 	/**
    * Build a string path for this lock
-   * @param The binary value to append to the end of the lock path
+   * @param  binaryValue The binary value to append to the end of the lock path
    * @param path The values to prepend to build path
    * @return
    */
