@@ -22,7 +22,6 @@ import java.util.Map;
 
 import static org.apache.commons.lang.StringUtils.split;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.usergrid.utils.MapUtils.hashMap;
 
 /**
