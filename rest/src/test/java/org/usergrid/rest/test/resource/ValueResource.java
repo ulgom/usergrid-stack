@@ -285,7 +285,7 @@ public abstract class ValueResource extends NamedResource {
     return node.get("entities").get(index);
   }
 
-
+  /*basic error checking, might not catch all cases*/
   protected void cursorValidation (String cursor) {
 
     String empty = "";
