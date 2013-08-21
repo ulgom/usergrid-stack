@@ -411,7 +411,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
