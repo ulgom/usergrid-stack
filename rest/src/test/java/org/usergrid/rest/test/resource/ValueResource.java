@@ -288,43 +288,11 @@ public abstract class ValueResource extends NamedResource {
 
   protected void cursorValidation (String cursor) {
 
-    CharSequence orderby = "select*orderby";
-    CharSequence queryInput = "select*where";
-    String help = query.replaceAll("\\s","");
-
-
-    if((query.replaceAll("\\s","")).equals("select*") || help.contains(queryInput)) {
-      //assertEquals(122,cursor.length());
-      byte[] decoded = Base64.decodeBase64(cursor);
-      try {
-        System.out.println(new String(decoded, "UTF-8") + "\n");
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();  // TODO: Customise this generated block
-      }
-      if(cursor.length()!= 122)
-        throw new IllegalArgumentException("Invalid Cursor");
-
-      String empty = "";
-      String compare =  cursor.replaceAll("[a-zA-z+/0-9]",empty);
-      if(!empty.equals(compare)){
-              throw new IllegalArgumentException("Invalid Cursor");//  assertEquals(empty,compare);
-      }
-
+    String empty = "";
+    String compare =  cursor.replaceAll("[a-zA-z+/0-9]",empty);
+    if(!empty.equals(compare)){
+      throw new IllegalArgumentException("Invalid Cursor");
     }
-
-    if(query.replaceAll("\\s","").contains(orderby)) {
-      if(cursor.length()!= 120)
-        throw new IllegalArgumentException("Invalid Cursor");
-      String empty = "";
-      String compare =  cursor.replaceAll("[a-zA-z+/0-9]",empty);
-      if(!empty.equals(compare)){
-        throw new IllegalArgumentException("Invalid Cursor");//  assertEquals(empty,compare);
-      }
-
-    }
-
-
-
   }
 
   /**

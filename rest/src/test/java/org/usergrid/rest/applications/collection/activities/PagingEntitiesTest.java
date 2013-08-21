@@ -1,20 +1,28 @@
 package org.usergrid.rest.applications.collection.activities;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.org.apache.xml.internal.security.transforms.implementations.TransformBase64Decode;
+import me.prettyprint.hector.api.beans.AbstractComposite;
+import me.prettyprint.hector.api.beans.DynamicComposite;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.aspectj.lang.annotation.Before;
 import org.codehaus.jackson.JsonNode;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.usergrid.rest.AbstractRestIT;
 import org.usergrid.rest.TestContextSetup;
 import org.usergrid.rest.test.resource.CustomCollection;
 
+import java.awt.*;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.commons.lang.StringUtils.split;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.usergrid.utils.MapUtils.hashMap;
 
 /**
@@ -212,7 +220,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
   }
 
 
-  @Test
+  @Ignore
   public void pageIncorrectSelectOrderSingleCursor() {
 
     CustomCollection activities = context.collection("activities");
@@ -282,7 +290,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
 
   }
 
-  @Test
+  @Ignore
   public void pageIncorrectSelectOrderDoubleCursor() {
 
     CustomCollection activities = context.collection("activities");
@@ -421,6 +429,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
 
   }
 
+  //@Ignore("generates incorrect cursor, but can't be distinguished from regular cursor just yet ")
   @Test
   public void pageIncorrectSelectLocationCursor() {
 
@@ -428,31 +437,64 @@ public class PagingEntitiesTest extends AbstractRestIT {
     setUp();
     String query = " select * where location within 5 of 37,-75";
 
+    JsonNode node = activities.withQuery(query).withLimit(1).get();
+    try {
+      while (node.get("entities").get(0) != null) {
+        assertEquals(1, node.get("entities").size());
 
+        byte[] dynoDecode = Base64.decodeBase64(node.get("cursor").getTextValue());
+
+        String decodedCursor = new String(Base64.decodeBase64(node.get("cursor").getTextValue()));
+        String[] parts = split(decodedCursor, ':');
+        byte[] decodedColumn = Base64.decodeBase64(parts[1]);
+
+        DynamicComposite componentHolder = DynamicComposite.fromByteBuffer(ByteBuffer.wrap(decodedColumn));
+        /*drop one*/
+        componentHolder.remove(3);
+        /*reseralize*/
+        ByteBuffer cursorColumnSerialized = componentHolder.serialize();
+        decodedColumn = cursorColumnSerialized.array();
+        parts[1] = new String(Base64.encodeBase64(decodedColumn));
+
+        String cur = parts[0]+':'+parts[1];
+
+        dynoDecode = Base64.encodeBase64(cur.getBytes());
+
+        cur = new String(dynoDecode);
+        node = activities.withQuery(query).withCursor(cur).withLimit(1).get();
+      }
+    }catch (IllegalArgumentException iae) {
+      assertEquals("Invalid Cursor", iae.getMessage());
+    }
+  }
+
+
+  @Test
+  public void pageIncorrectSelectAmpresandAndPipe() {
+
+    CustomCollection activities = context.collection("activities");
+    setUp();
+    String query = " select * where location within 5 of 37,-75";
+
+    int i = 0;
     JsonNode node = activities.withQuery(query).withLimit(1).get();
     int index = 0;
     try {
       while (node.get("entities").get(0) != null) {
         assertEquals(1, node.get("entities").size());
 
+        String decoded = new String(Base64.decodeBase64(node.get("cursor").getTextValue()));
+        String encodedMissing = decoded.replace(':', '&');
+
+        String encodedMissing64 = Base64.encodeBase64String(encodedMissing.getBytes());
+        encodedMissing64 = encodedMissing64.replaceAll("\r\n","");
+
         if (node.get("cursor") != null)
-          node = activities.withQuery(query).withCursor("%@T^" + node.get("cursor").getTextValue()).withLimit(1).get();
+          node = activities.withQuery(query).withCursor(encodedMissing64).withLimit(1).get();
 
         else
           break;
 
-      }
-    /* What should this error message be?*/
-    } catch (IllegalArgumentException iae) {
-      assertEquals("Invalid Cursor", iae.getMessage());
-    }
-
-    String incorrectCursor = node.get("cursor").getTextValue();
-    incorrectCursor = '%' + incorrectCursor.substring(1);
-    /*surround in try catch block*/
-    try {
-      if (node.get("cursor") != null) {
-        node = activities.withQuery(query).withCursor(incorrectCursor).withLimit(1).get();
       }
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
