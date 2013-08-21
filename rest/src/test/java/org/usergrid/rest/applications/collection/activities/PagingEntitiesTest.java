@@ -1,7 +1,6 @@
 package org.usergrid.rest.applications.collection.activities;
 
-import com.sun.jersey.api.client.UniformInterfaceException;
-import me.prettyprint.hector.api.beans.AbstractComposite;
+
 import me.prettyprint.hector.api.beans.DynamicComposite;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.ArrayUtils;
@@ -14,8 +13,6 @@ import org.usergrid.rest.AbstractRestIT;
 import org.usergrid.rest.TestContextSetup;
 import org.usergrid.rest.test.resource.CustomCollection;
 
-import java.awt.*;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,9 +46,9 @@ public class PagingEntitiesTest extends AbstractRestIT {
 
     props.put("actor", actor);
     props.put("verb", "go");
-    Map location = hashMap("latitude",37);
-    location.put("longitude",-75);
-    props.put ("location",location);
+    Map location = hashMap("latitude", 37);
+    location.put("longitude", -75);
+    props.put("location", location);
 
     for (int i = 0; i < maxSize; i++) {
 
@@ -153,11 +150,8 @@ public class PagingEntitiesTest extends AbstractRestIT {
   public void pageIncorrectSelectCursor() {
 
     CustomCollection activities = context.collection("activities");
-
     setUp();
-
-    String query = "  select *   ";//where created >= " + created;
-
+    String query = "  select *   ";
 
     JsonNode node = activities.withQuery(query).withLimit(1).get();//activities.query(query,"limit","2");
     int index = 0;
@@ -172,14 +166,12 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
 
     String incorrectCursor = node.get("cursor").getTextValue();
     incorrectCursor = '%' + incorrectCursor.substring(1);
-    /*surround in try catch block*/
     try {
       if (node.get("cursor") != null) {
         node = activities.withQuery(query).withCursor(incorrectCursor).withLimit(1).get();
@@ -193,14 +185,11 @@ public class PagingEntitiesTest extends AbstractRestIT {
   public void pageCorrectSelectCursor() {
 
     CustomCollection activities = context.collection("activities");
-
     setUp();
+    String query = "  select *   ";
 
-    String query = "  select *   ";//where created >= " + created;
 
-
-    JsonNode node = activities.withQuery(query).withLimit(1).get();//activities.query(query,"limit","2");
-    int index = 0;
+    JsonNode node = activities.withQuery(query).withLimit(1).get();
     try {
       while (node.get("entities").get(0) != null) {
         assertEquals(1, node.get("entities").size());
@@ -212,7 +201,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
@@ -242,14 +230,12 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
 
     String incorrectCursor = node.get("cursor").getTextValue();
     incorrectCursor = '%' + incorrectCursor.substring(1);
-    /*surround in try catch block*/
     try {
       if (node.get("cursor") != null) {
         node = activities.withQuery(query).withCursor(incorrectCursor).withLimit(1).get();
@@ -270,7 +256,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
 
 
     JsonNode node = activities.withQuery(query).withLimit(1).get();
-    int index = 0;
     try {
       while (node.get("entities").get(0) != null) {
         assertEquals(1, node.get("entities").size());
@@ -282,7 +267,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
@@ -311,14 +295,12 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
 
     String incorrectCursor = node.get("cursor").getTextValue();
     incorrectCursor = '%' + incorrectCursor.substring(1);
-    /*surround in try catch block*/
     try {
       if (node.get("cursor") != null) {
         node = activities.withQuery(query).withCursor(incorrectCursor).withLimit(1).get();
@@ -328,9 +310,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
     }
 
   }
-
-  /*didn't make an incorrect version of this because
-  the cursor was the exact same as the single orderby*/
 
   @Test
   public void pageCorrectSelectOrderDoubleCursor() {
@@ -354,7 +333,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
@@ -370,7 +348,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
 
 
     JsonNode node = activities.withQuery(query).withLimit(1).get();
-    int index = 0;
     try {
       while (node.get("entities").get(0) != null) {
         assertEquals(1, node.get("entities").size());
@@ -382,7 +359,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
           break;
 
       }
-    /* What should this error message be?*/
     } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
@@ -396,9 +372,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
     setUp();
     String query = " select * where verb = 'go'";
 
-
     JsonNode node = activities.withQuery(query).withLimit(1).get();
-    int index = 0;
     try {
       while (node.get("entities").get(0) != null) {
         assertEquals(1, node.get("entities").size());
@@ -416,7 +390,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
 
     String incorrectCursor = node.get("cursor").getTextValue();
     incorrectCursor = '%' + incorrectCursor.substring(1);
-    /*surround in try catch block*/
     try {
       if (node.get("cursor") != null) {
         node = activities.withQuery(query).withCursor(incorrectCursor).withLimit(1).get();
@@ -454,14 +427,14 @@ public class PagingEntitiesTest extends AbstractRestIT {
         decodedColumn = cursorColumnSerialized.array();
         parts[1] = new String(Base64.encodeBase64(decodedColumn));
 
-        String cur = parts[0]+':'+parts[1];
+        String cur = parts[0] + ':' + parts[1];
 
         dynoDecode = Base64.encodeBase64(cur.getBytes());
 
         cur = new String(dynoDecode);
         node = activities.withQuery(query).withCursor(cur).withLimit(1).get();
       }
-    }catch (IllegalArgumentException iae) {
+    } catch (IllegalArgumentException iae) {
       assertEquals("Invalid Cursor", iae.getMessage());
     }
   }
@@ -474,9 +447,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
     setUp();
     String query = " select * where location within 5 of 37,-75";
 
-    int i = 0;
     JsonNode node = activities.withQuery(query).withLimit(1).get();
-    int index = 0;
     try {
       while (node.get("entities").get(0) != null) {
         assertEquals(1, node.get("entities").size());
@@ -485,7 +456,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
         String encodedMissing = decoded.replace(':', '&');
 
         String encodedMissing64 = Base64.encodeBase64String(encodedMissing.getBytes());
-        encodedMissing64 = encodedMissing64.replaceAll("\r\n","");
+        encodedMissing64 = encodedMissing64.replaceAll("\r\n", "");
 
         if (node.get("cursor") != null)
           node = activities.withQuery(query).withCursor(encodedMissing64).withLimit(1).get();
@@ -499,9 +470,6 @@ public class PagingEntitiesTest extends AbstractRestIT {
     }
 
   }
-
-
-
 
 
 }
