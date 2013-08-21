@@ -220,7 +220,7 @@ public class PagingEntitiesTest extends AbstractRestIT {
   }
 
 
-  @Ignore
+  @Ignore("wait for response on whether error checking should be added to cursorcache")
   public void pageIncorrectSelectOrderSingleCursor() {
 
     CustomCollection activities = context.collection("activities");
