@@ -351,6 +351,7 @@ public class Query {
         && (identifiers.size() == 1);
   }
 
+  @JsonIgnore
   public Identifier getSingleIdentifier(){
     return identifiers != null && identifiers.size() == 1? identifiers.get(0) : null;
   }
@@ -366,12 +367,28 @@ public class Query {
     if ((identifiers == null) || identifiers.isEmpty()) {
       return false;
     }
+
     for (Identifier identifier : identifiers) {
       if (!identifier.isUUID()) {
         return false;
       }
+
     }
     return true;
+  }
+
+  public Query addSort(SortPredicate sort) {
+    if (sort == null) {
+      return this;
+    }
+
+    for (SortPredicate s : sortPredicates) {
+      if (s.getPropertyName().equals(sort.getPropertyName())) {
+        throw new QueryParseException(String.format("Attempted to set sort order for %s more than once", s.getPropertyName() ));
+      }
+    }
+    sortPredicates.add(sort);
+    return this;
   }
 
   @JsonIgnore
@@ -537,22 +554,6 @@ public class Query {
       }
     }
     sortPredicates.add(new SortPredicate(propertyName, direction));
-    return this;
-  }
-
-  public Query addSort(SortPredicate sort) {
-    if (sort == null) {
-      return this;
-    }
-
-    for (SortPredicate s : sortPredicates) {
-      if (s.getPropertyName().equals(sort.getPropertyName())) {
-        logger.error("Attempted to set sort order for "
-            + s.getPropertyName() + " more than once, discarding...");
-        return this;
-      }
-    }
-    sortPredicates.add(sort);
     return this;
   }
 
@@ -1151,5 +1152,21 @@ public class Query {
 
   public void setQl(String ql) {
     this.ql = ql;
+  }
+
+  public List<Identifier> getIdentifiers() {
+    return identifiers;
+  }
+
+  public String getConnection() {
+    return connection;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public Level getLevel() {
+    return level;
   }
 }

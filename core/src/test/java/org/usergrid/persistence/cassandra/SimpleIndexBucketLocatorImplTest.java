@@ -25,8 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.IndexBucketLocator.IndexType;
 import org.usergrid.utils.UUIDUtils;
 
@@ -38,11 +37,8 @@ import com.yammer.metrics.core.TimerContext;
  * @author tnine
  * 
  */
+@Concurrent()
 public class SimpleIndexBucketLocatorImplTest {
-
-    private static final Logger logger = LoggerFactory
-            .getLogger(SimpleIndexBucketLocatorImplTest.class);
-
     @Test
     public void oneBucket() {
 
@@ -50,8 +46,7 @@ public class SimpleIndexBucketLocatorImplTest {
         String entityType = "user";
         String propName = "firstName";
 
-        SimpleIndexBucketLocatorImpl locator = new SimpleIndexBucketLocatorImpl(
-                1);
+        SimpleIndexBucketLocatorImpl locator = new SimpleIndexBucketLocatorImpl( 1 );
 
         List<String> buckets = locator.getBuckets(appId, IndexType.COLLECTION,
                 entityType, propName);
@@ -76,8 +71,8 @@ public class SimpleIndexBucketLocatorImplTest {
         assertEquals(bucket1, "000000000000000000000000000000000000000");
         assertEquals(bucket2, "000000000000000000000000000000000000000");
         assertEquals(bucket3, "000000000000000000000000000000000000000");
-
     }
+
 
     @Test
     public void twoBuckets() {

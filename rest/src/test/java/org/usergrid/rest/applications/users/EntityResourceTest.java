@@ -1,7 +1,7 @@
 package org.usergrid.rest.applications.users;
 
 import org.codehaus.jackson.JsonNode;
-import org.usergrid.rest.RestContextTest;
+import org.usergrid.rest.AbstractRestIT;
 
 import javax.ws.rs.core.MediaType;
 import java.util.LinkedHashMap;
@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNotNull;
  * @author ApigeeCorporation
  * @since 4.0
  */
-public class EntityResourceTest extends RestContextTest {
+public class EntityResourceTest extends AbstractRestIT {
 
   @Test
   public void deleteConnectionsTest () {

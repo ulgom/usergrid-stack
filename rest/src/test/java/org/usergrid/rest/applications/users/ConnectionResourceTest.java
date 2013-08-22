@@ -2,21 +2,31 @@ package org.usergrid.rest.applications.users;
 
 import com.sun.jersey.api.client.UniformInterfaceException;
 import org.codehaus.jackson.JsonNode;
+
 import org.codehaus.jackson.node.ArrayNode;
 import org.usergrid.management.ApplicationInfo;
 import org.usergrid.management.OrganizationOwnerInfo;
-import org.usergrid.rest.RestContextTest;
+//import org.usergrid.rest.RestContextTest;
 
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 
+import org.junit.Rule;
+import org.usergrid.rest.AbstractRestIT;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+
 import org.junit.Test;
-import org.junit.Ignore;
 import com.sun.jersey.api.client.ClientResponse;
+import org.usergrid.rest.TestContextSetup;
 import org.usergrid.rest.test.resource.app.CustomEntity;
 
 import static org.junit.Assert.*;
 import static org.junit.Assert.fail;
+
+import static org.junit.Assert.assertEquals;
 import static org.usergrid.utils.MapUtils.hashMap;
 
 import org.usergrid.rest.test.resource.CustomCollection;
@@ -28,14 +38,17 @@ import org.usergrid.utils.UUIDUtils;
  * @author ApigeeCorporation
  * @since 4.0
  */
-public class ConnectionResourceTest extends RestContextTest {
+public class ConnectionResourceTest extends AbstractRestIT
+{
+  @Rule
+  public TestContextSetup context = new TestContextSetup( this );
 
   @Test
      public void connectionsQueryTest() {
 
     CustomEntity items = new CustomEntity("item", null);
 
-    CustomCollection activities = collection("peeps");
+    CustomCollection activities = context.collection("peeps");
 
     Map stuff = hashMap("type", "chicken");
 
@@ -98,13 +111,10 @@ public class ConnectionResourceTest extends RestContextTest {
 
   }
 
-  /*change things so that they say item instead of peeps*/
   @Test
   public void deleteConnectionTest() {
 
-   // CustomEntity items = new CustomEntity("item", null);
-
-    CustomCollection activities = collection("peeps");
+    CustomCollection activities = context.collection("peeps");
 
     Map stuff = hashMap("type", "chicken");
 
@@ -159,7 +169,6 @@ public class ConnectionResourceTest extends RestContextTest {
           .accept(MediaType.APPLICATION_JSON)
           .type(MediaType.APPLICATION_JSON_TYPE)
           .get(JsonNode.class);
-      //assert (false);
     } catch (UniformInterfaceException uie) {
       assertEquals(404, uie.getResponse().getClientResponseStatus().getStatusCode());
       return;
@@ -173,7 +182,6 @@ public class ConnectionResourceTest extends RestContextTest {
         .type(MediaType.APPLICATION_JSON_TYPE)
         .delete(JsonNode.class);
 
-    //assert(false);
 
 
   }
@@ -189,16 +197,17 @@ public class ConnectionResourceTest extends RestContextTest {
     String password = "password";
     String email = String.format("email%s@usergrid.com", id);
 
-    OrganizationOwnerInfo orgs = managementService.createOwnerAndOrganization(orgname, username, "noname", email,
+    OrganizationOwnerInfo orgs = setup.getMgmtSvc().createOwnerAndOrganization(orgname, username, "noname", email,
         password, true, false);
 
     // create the app
-    ApplicationInfo appInfo = managementService.createApplication(orgs.getOrganization().getUuid(), applicationName);
+    ApplicationInfo appInfo = setup.getMgmtSvc().createApplication(orgs.getOrganization().getUuid(), applicationName);
+
 
     // now create the new role
     Map<String, String> data = hashMap("name", "reviewer");
 
-    String adminToken = managementService.getAccessTokenForAdminUser(orgs.getOwner().getUuid(), 0);
+    String adminToken = setup.getMgmtSvc().getAccessTokenForAdminUser(orgs.getOwner().getUuid(), 0);
 
 
     JsonNode node = resource().path(String.format("/%s/%s/roles", orgname, applicationName))
@@ -229,7 +238,7 @@ public class ConnectionResourceTest extends RestContextTest {
     UUID userId = createRoleUser(orgs.getOrganization().getUuid(), appInfo.getId(), adminToken, "reviewer1",
         "reviewer1@usergrid.com");
 
-    String userToken = managementService.getAccessTokenForAppUser(appInfo.getId(),userId,64000);
+    String userToken = setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(), userId, 64000);
 
     node = resource().path(String.format("/%s/%s/roles/reviewer/permissions", orgname, applicationName))
         .queryParam("access_token", adminToken)
@@ -251,15 +260,14 @@ public class ConnectionResourceTest extends RestContextTest {
 
     assertNull(getError(node));
 
-    String reviewer1Token = managementService.getAccessTokenForAppUser(appInfo.getId(), userId, 0);
+    String reviewer1Token = setup.getMgmtSvc().getAccessTokenForAppUser(appInfo.getId(), userId, 0);
 
 
     Map<String, Object> objectOfDesire = new LinkedHashMap<String, Object>();
     objectOfDesire.put("codingmunchies", "doritoes");
 
     ClientResponse toddWant = resource().path(String.format("/%s/%s/users/reviewer1/owns/items", orgname,applicationName))
-        //.queryParam("access_token", adminToken)
-        .queryParam("access_token",userToken)
+        .queryParam("access_token", userToken)
         .accept(MediaType.TEXT_HTML)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .post(ClientResponse.class, objectOfDesire);
@@ -388,41 +396,6 @@ public class ConnectionResourceTest extends RestContextTest {
     fail(String.format("didn't find grant %s in the results", grant));
   }
 
-
-//  @Test
-//  public void deleteConnectionsTest () {
-//
-//    CustomEntity items = new CustomEntity("item",null);
-//
-//    Map<String, Object> payload = new LinkedHashMap<String, Object>();
-//    payload.put("uuid", "59129360-fa30-11e2-bbf5-bbb7a60289dc");
-//
-//
-//    JsonNode node = resource().path("/test-organization/test-app/users/me/owns/items")
-//        .queryParam("access_token", access_token)
-//        .accept(MediaType.APPLICATION_JSON)
-//        .type(MediaType.APPLICATION_JSON_TYPE)
-//        .post(JsonNode.class,payload);
-//
-//    String uuid = node.get("entities").get(0).get("uuid").getTextValue();
-//    node = resource().path("/test-organization/test-app/users/me/owns/items")
-//        .queryParam("access_token", access_token)
-//        .accept(MediaType.APPLICATION_JSON)
-//        .type(MediaType.APPLICATION_JSON_TYPE)
-//        .get(JsonNode.class);
-//
-//    assertNotNull(node.get("entities").get(0));
-//
-//    ClientResponse deleteResponse = resource().path("/test-organization/test-app/users/me/owns/items/"+uuid)
-//        .queryParam("access_token", access_token)
-//        .accept(MediaType.TEXT_HTML)
-//        .type(MediaType.APPLICATION_JSON_TYPE)
-//        .delete(ClientResponse.class);
-//
-//    assertEquals(200,deleteResponse.getStatus());
-//
-//  }
-
   /**
    * Create the user, check there are no errors
    *
@@ -449,7 +422,7 @@ public class ConnectionResourceTest extends RestContextTest {
     UUID userId = UUID.fromString(getEntity(node, 0).get("uuid").asText());
 
     // manually activate user
-    managementService.activateAppUser(appId, userId);
+    setup.getMgmtSvc().activateAppUser(appId, userId);
 
     return userId;
 
