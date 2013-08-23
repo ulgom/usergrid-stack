@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.usergrid.rest.applications.users;
 
+import com.sun.jersey.api.client.UniformInterfaceException;
 import org.codehaus.jackson.JsonNode;
 import org.junit.Rule;
 import org.junit.Test;
@@ -319,6 +320,42 @@ public class OwnershipResourceIT extends AbstractRestIT {
 
     assertNotNull(data);
     assertEquals("arrogantbutcher", getEntity(data, 0).get("name").asText());
+  }
+
+  @Test     //USERGRID-2028
+  public void contextualPathOwnershipUsingAssets() {
+
+    JsonNode data = null;
+
+    // anonymous user
+    context.clearUser();
+
+    TestUser user1 = new TestAppUser("testuser1@usergrid.org", "password", "testuser1@usergrid.org").create(context)
+        .login(context).makeActive(context);
+
+    // create device 1 on user1 devices
+    context.application().users().user("me").collection("assets").entity("myassets")
+        .create(MapUtils.hashMap("myassets", "device1"));
+
+    JsonNode user1Node = context.application().users().user("testuser1@usergrid.org").collection("assets").entity
+        ("myassets")
+        .get();
+
+    // anonymous user
+    context.clearUser();
+
+    // create asset 2 on user 2
+    TestUser user2 = new TestAppUser("testuser2@usergrid.org", "password", "testuser2@usergrid.org").create(context)
+        .login(context).makeActive(context);
+
+    try{
+      data = context.withUser(user2).application().users().user("testuser1@usergrid.org").collection("assets")
+          .entity("myassets").get();
+    }
+    catch(UniformInterfaceException uie){
+      assertEquals(404,uie.getResponse().getStatus());
+    }
+    assertNull(data.get("entities").get(0));
   }
 
 }
