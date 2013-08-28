@@ -17,7 +17,6 @@ package org.usergrid.batch.job;
 
 
 import org.junit.*;
-import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.entities.JobData;
 import org.usergrid.persistence.entities.JobStat;
 
@@ -31,7 +30,6 @@ import static org.junit.Assert.*;
  * 
  * @author tnine
  */
-@Concurrent()
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
 public class SchedulerRuntime3IT extends AbstractSchedulerRuntimeIT
 {
@@ -47,8 +45,8 @@ public class SchedulerRuntime3IT extends AbstractSchedulerRuntimeIT
   @Test
   public void failureCausesJobDeath() throws Exception {
 
-    int failCount = Integer.parseInt(props.getProperty(FAIL_PROP));
-    long sleepTime = Long.parseLong(props.getProperty(RUNNLOOP_PROP));
+    int failCount = Integer.parseInt(setup.getProps().getProperty(FAIL_PROP));
+    long sleepTime = Long.parseLong(setup.getProps().getProperty(RUNNLOOP_PROP));
 
     FailureJobExceuction job = cassandraResource.getBean("failureJobExceuction", FailureJobExceuction.class);
 
@@ -56,7 +54,7 @@ public class SchedulerRuntime3IT extends AbstractSchedulerRuntimeIT
     
     job.setLatch(latchValue);
 
-    JobData returned = scheduler.createJob("failureJobExceuction", System.currentTimeMillis(), new JobData());
+    JobData returned = setup.getSs().createJob("failureJobExceuction", System.currentTimeMillis(), new JobData());
 
     // sleep until the job should have failed. We sleep 1 extra cycle just to
     // make sure we're not racing the test
@@ -68,7 +66,7 @@ public class SchedulerRuntime3IT extends AbstractSchedulerRuntimeIT
     //we shouldn't have run the last time, we should have counted down to it
     assertEquals(1, job.getLatchCount());
     
-    JobStat stat = scheduler.getStatsForJob(returned.getJobName(), returned.getUuid());
+    JobStat stat = setup.getSs().getStatsForJob(returned.getJobName(), returned.getUuid());
 
     // we should have only marked this as run fail+1 times
     assertEquals(latchValue, stat.getTotalAttempts());

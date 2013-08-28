@@ -22,10 +22,8 @@ import org.usergrid.cassandra.Concurrent;
             SchedulerRuntime7IT.class,
             SchedulerRuntime8IT.class
     } )
-@Concurrent()
+@Concurrent( threads = 8 )
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
-// TODO - this suite actually runs correctly now so we can
-// remove this ignore if Todd is OK with it.
 public class SchedulerITSuite
 {
     @ClassRule

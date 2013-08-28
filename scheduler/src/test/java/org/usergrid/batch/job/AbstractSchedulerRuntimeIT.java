@@ -16,14 +16,9 @@
 package org.usergrid.batch.job;
 
 
-import com.google.common.util.concurrent.Service.State;
-import org.junit.Before;
-import org.usergrid.SchedulerITSuite;
-import org.usergrid.batch.service.JobSchedulerService;
-import org.usergrid.batch.service.SchedulerService;
+import org.junit.ClassRule;
+import org.usergrid.*;
 import org.usergrid.cassandra.CassandraResource;
-
-import java.util.Properties;
 
 
 /**
@@ -33,19 +28,9 @@ import java.util.Properties;
  */
 public class AbstractSchedulerRuntimeIT
 {
-  public static CassandraResource cassandraResource = SchedulerITSuite.cassandraResource;
-  protected SchedulerService scheduler;
-  protected Properties props;
+    @ClassRule
+    public static CassandraResource cassandraResource = ConcurrentSchedulerITSuite.cassandraResource;
 
-  @Before
-  public void setup() {
-    scheduler = cassandraResource.getBean(SchedulerService.class);
-    props = cassandraResource.getBean("properties", Properties.class);
-
-    // start the scheduler after we're all set up
-    JobSchedulerService jobScheduler = cassandraResource.getBean(JobSchedulerService.class);
-    if (jobScheduler.state() != State.RUNNING) {
-      jobScheduler.startAndWait();
-    }
-  }
+    @ClassRule
+    public static SchedulerITSetup setup = new SchedulerITSetupImpl( cassandraResource );
 }

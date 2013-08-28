@@ -16,13 +16,13 @@
 package org.usergrid.batch.job;
 
 
-import org.junit.*;
-import org.usergrid.cassandra.Concurrent;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.usergrid.persistence.entities.JobData;
 import org.usergrid.persistence.entities.JobStat;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static junit.framework.TestCase.*;
 
 
 /**
@@ -30,7 +30,6 @@ import static org.junit.Assert.*;
  * 
  * @author tnine
  */
-@Concurrent()
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
 public class SchedulerRuntime6IT extends AbstractSchedulerRuntimeIT
 {
@@ -46,7 +45,7 @@ public class SchedulerRuntime6IT extends AbstractSchedulerRuntimeIT
   @Test
   public void onlyOnceTest() throws Exception {
 
-    long sleepTime = Long.parseLong(props.getProperty(TIMEOUT_PROP));
+    long sleepTime = Long.parseLong(setup.getProps().getProperty(TIMEOUT_PROP));
 
     long customRetry = sleepTime + 1000;
     int numberOfRuns = 1;
@@ -57,7 +56,7 @@ public class SchedulerRuntime6IT extends AbstractSchedulerRuntimeIT
     job.setLatch(numberOfRuns);
     job.setDelay(sleepTime);
 
-    JobData returned = scheduler.createJob("onlyOnceExceution", System.currentTimeMillis(), new JobData());
+    JobData returned = setup.getSs().createJob("onlyOnceExceution", System.currentTimeMillis(), new JobData());
 
     // sleep until the job should have failed. We sleep 1 extra cycle just to
     // make sure we're not racing the test
@@ -69,7 +68,7 @@ public class SchedulerRuntime6IT extends AbstractSchedulerRuntimeIT
     //reset our latch immediately for further tests
     job.setLatch(numberOfRuns);
 
-    JobStat stat = scheduler.getStatsForJob(returned.getJobName(), returned.getUuid());
+    JobStat stat = setup.getSs().getStatsForJob(returned.getJobName(), returned.getUuid());
 
     // we should have only marked this as run once since we delayed furthur execution
     // we should have only marked this as run once
@@ -90,7 +89,7 @@ public class SchedulerRuntime6IT extends AbstractSchedulerRuntimeIT
     
     assertFalse("Job ran twice", waited);
     
-    stat = scheduler.getStatsForJob(returned.getJobName(), returned.getUuid());
+    stat = setup.getSs().getStatsForJob(returned.getJobName(), returned.getUuid());
 
     // we should have only marked this as run once since we delayed furthur execution
     // we should have only marked this as run once

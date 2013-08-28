@@ -17,7 +17,6 @@ package org.usergrid.batch.job;
 
 
 import org.junit.*;
-import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.entities.JobData;
 import org.usergrid.persistence.entities.JobStat;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +29,6 @@ import static org.junit.Assert.*;
  * 
  * @author tnine
  */
-@Concurrent()
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
 public class SchedulerRuntime7IT extends AbstractSchedulerRuntimeIT
 {
@@ -45,9 +43,9 @@ public class SchedulerRuntime7IT extends AbstractSchedulerRuntimeIT
   @Test
   public void onlyOnceTestOnException() throws Exception {
 
-    long sleepTime = Long.parseLong(props.getProperty(TIMEOUT_PROP));
+    long sleepTime = Long.parseLong(setup.getProps().getProperty(TIMEOUT_PROP));
     
-    long runLoop = Long.parseLong(props.getProperty(RUNNLOOP_PROP));
+    long runLoop = Long.parseLong(setup.getProps().getProperty(RUNNLOOP_PROP));
 
     long customRetry = sleepTime * 2;
     int numberOfRuns = 2;
@@ -58,7 +56,7 @@ public class SchedulerRuntime7IT extends AbstractSchedulerRuntimeIT
     job.setLatch(numberOfRuns);
     job.setDelay(sleepTime);
 
-    JobData returned = scheduler.createJob("onlyOnceUnlockOnFailExceution", System.currentTimeMillis(), new JobData());
+    JobData returned = setup.getSs().createJob("onlyOnceUnlockOnFailExceution", System.currentTimeMillis(), new JobData());
 
     // sleep until the job should have failed. We sleep 1 extra cycle just to make sure we're not racing the test
     
@@ -74,12 +72,12 @@ public class SchedulerRuntime7IT extends AbstractSchedulerRuntimeIT
     
     assertTrue("One completed", completed);
     
-    JobStat stat = scheduler.getStatsForJob(returned.getJobName(), returned.getUuid());
+    JobStat stat = setup.getSs().getStatsForJob(returned.getJobName(), returned.getUuid());
 
    
   
     
-    stat = scheduler.getStatsForJob(returned.getJobName(), returned.getUuid());
+    stat = setup.getSs().getStatsForJob(returned.getJobName(), returned.getUuid());
 
     // we should have only marked this as run once since we delayed furthur execution
     // we should have only marked this as run once

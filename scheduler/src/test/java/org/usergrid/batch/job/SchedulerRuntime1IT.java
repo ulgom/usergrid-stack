@@ -16,8 +16,8 @@
 package org.usergrid.batch.job;
 
 
-import org.junit.*;
-import org.usergrid.cassandra.Concurrent;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.usergrid.persistence.entities.JobData;
 import java.util.concurrent.TimeUnit;
 
@@ -29,24 +29,24 @@ import static org.junit.Assert.assertTrue;
  * 
  * @author tnine
  */
-@Concurrent()
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
 public class SchedulerRuntime1IT extends AbstractSchedulerRuntimeIT
 {
-  @Test
-  public void basicScheduling() throws InterruptedException {
-    int count = 1000;
+    @Test
+    public void basicScheduling() throws InterruptedException
+    {
+        int count = 1000;
 
-    CountdownLatchJob counterJob = cassandraResource.getBean(CountdownLatchJob.class);
-    // set the counter job latch size
-    counterJob.setLatch(count);
+        CountdownLatchJob counterJob = setup.getLatchJob();
+        // set the counter job latch size
+        counterJob.setLatch(count);
 
-    for (int i = 0; i < count; i++) {
-      scheduler.createJob("countdownLatch", System.currentTimeMillis(), new JobData());
-    }
+        for (int i = 0; i < count; i++) {
+            setup.getSs().createJob("countdownLatch", System.currentTimeMillis(), new JobData());
+        }
 
-    // now wait until everything fires
-    boolean waited = counterJob.waitForCount(60, TimeUnit.SECONDS);
-    assertTrue("Jobs ran", waited);
+        // now wait until everything fires
+        boolean waited = counterJob.waitForCount(60, TimeUnit.SECONDS);
+        assertTrue("Jobs ran", waited);
     }
 }

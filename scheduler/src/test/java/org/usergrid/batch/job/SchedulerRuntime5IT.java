@@ -17,13 +17,13 @@ package org.usergrid.batch.job;
 
 
 import org.junit.*;
-import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.entities.JobData;
 import org.usergrid.persistence.entities.JobStat;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 
 /**
@@ -31,7 +31,6 @@ import static org.junit.Assert.*;
  * 
  * @author tnine
  */
-@Concurrent()
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
 public class SchedulerRuntime5IT extends AbstractSchedulerRuntimeIT
 {
@@ -46,7 +45,7 @@ public class SchedulerRuntime5IT extends AbstractSchedulerRuntimeIT
   @Test
   public void delayHeartbeat() throws Exception {
 
-    long sleepTime = Long.parseLong(props.getProperty(TIMEOUT_PROP));
+    long sleepTime = Long.parseLong(setup.getProps().getProperty(TIMEOUT_PROP));
 
     int heartbeatCount = 2;
 
@@ -57,7 +56,7 @@ public class SchedulerRuntime5IT extends AbstractSchedulerRuntimeIT
     job.setTimeout(customRetry);
     job.setLatch(heartbeatCount+1);
 
-    JobData returned = scheduler.createJob("delayHeartbeat", System.currentTimeMillis(), new JobData());
+    JobData returned = setup.getSs().createJob("delayHeartbeat", System.currentTimeMillis(), new JobData());
 
     // sleep until the job should have failed. We sleep 1 extra cycle just to
     // make sure we're not racing the test
@@ -65,7 +64,7 @@ public class SchedulerRuntime5IT extends AbstractSchedulerRuntimeIT
 
     assertTrue("Job ran to complete", waited);
 
-    JobStat stat = scheduler.getStatsForJob(returned.getJobName(), returned.getUuid());
+    JobStat stat = setup.getSs().getStatsForJob(returned.getJobName(), returned.getUuid());
 
     // we should have only marked this as run once since we delayed further execution
     // we should have only marked this as run once

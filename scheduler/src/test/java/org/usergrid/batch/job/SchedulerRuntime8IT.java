@@ -17,7 +17,6 @@ package org.usergrid.batch.job;
 
 
 import org.junit.*;
-import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.Query;
 import org.usergrid.persistence.Results;
 import org.usergrid.persistence.entities.JobData;
@@ -34,7 +33,6 @@ import static org.junit.Assert.*;
  * 
  * @author tnine
  */
-@Concurrent()
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
 public class SchedulerRuntime8IT extends AbstractSchedulerRuntimeIT
 {
@@ -60,14 +58,14 @@ public class SchedulerRuntime8IT extends AbstractSchedulerRuntimeIT
     test.setProperty("stringprop", "test");
     test.setProperty("notificationId", notificationId);
 
-    JobData saved = scheduler.createJob("countdownLatch", fireTime, test);
+    JobData saved = setup.getSs().createJob("countdownLatch", fireTime, test);
 
     // now query and make sure it equals the saved value
 
     Query query = new Query();
     query.addEqualityFilter("notificationId", notificationId);
 
-    Results r = scheduler.queryJobData(query);
+    Results r = setup.getSs().queryJobData(query);
 
     assertEquals(1, r.size());
 
@@ -77,7 +75,7 @@ public class SchedulerRuntime8IT extends AbstractSchedulerRuntimeIT
     query = new Query();
     query.addEqualityFilter("stringprop", "test");
 
-    r = scheduler.queryJobData(query);
+    r = setup.getSs().queryJobData(query);
 
     assertEquals(1, r.size());
 
@@ -85,7 +83,7 @@ public class SchedulerRuntime8IT extends AbstractSchedulerRuntimeIT
 
     // now delete the job
 
-    scheduler.deleteJob(saved.getUuid());
+    setup.getSs().deleteJob(saved.getUuid());
 
     // sleep until the job should have failed. We sleep 1 extra cycle just to
     // make sure we're not racing the test

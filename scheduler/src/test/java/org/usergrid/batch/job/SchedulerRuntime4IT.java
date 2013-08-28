@@ -16,15 +16,10 @@
 package org.usergrid.batch.job;
 
 
-import com.google.common.util.concurrent.Service.State;
 import org.junit.*;
-import org.usergrid.batch.service.JobSchedulerService;
-import org.usergrid.batch.service.SchedulerService;
-import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.entities.JobData;
 import org.usergrid.persistence.entities.JobStat;
 
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -35,25 +30,10 @@ import static org.junit.Assert.*;
  * 
  * @author tnine
  */
-@Concurrent()
 @Ignore( "TODO: Todd fix. Does not reliably pass on our build server." )
 public class SchedulerRuntime4IT extends AbstractSchedulerRuntimeIT
 {
   private static final String TIMEOUT_PROP = "usergrid.scheduler.job.timeout";
-
-  @Before
-  public void setup() {
-    scheduler = cassandraResource.getBean(SchedulerService.class);
-
-    props = cassandraResource.getBean("properties", Properties.class);
-
-    // start the scheduler after we're all set up
-    JobSchedulerService jobScheduler = cassandraResource.getBean(JobSchedulerService.class);
-    if (jobScheduler.state() != State.RUNNING) {
-      jobScheduler.startAndWait();
-    }
-
-  }
 
 
   /**
@@ -65,7 +45,7 @@ public class SchedulerRuntime4IT extends AbstractSchedulerRuntimeIT
   @Test
   public void delayExecution() throws Exception {
 
-    long sleepTime = Long.parseLong(props.getProperty(TIMEOUT_PROP));
+    long sleepTime = Long.parseLong(setup.getProps().getProperty(TIMEOUT_PROP));
 
     int delayCount = 2;
 
@@ -76,7 +56,7 @@ public class SchedulerRuntime4IT extends AbstractSchedulerRuntimeIT
     job.setTimeout(customRetry);
     job.setLatch(delayCount+1);
 
-    JobData returned = scheduler.createJob("delayExecution", System.currentTimeMillis(), new JobData());
+    JobData returned = setup.getSs().createJob("delayExecution", System.currentTimeMillis(), new JobData());
 
     // sleep until the job should have failed. We sleep 1 extra cycle just to
     // make sure we're not racing the test
@@ -84,7 +64,7 @@ public class SchedulerRuntime4IT extends AbstractSchedulerRuntimeIT
 
     assertTrue("Job ran to complete", waited);
 
-    JobStat stat = scheduler.getStatsForJob(returned.getJobName(), returned.getUuid());
+    JobStat stat = setup.getSs().getStatsForJob(returned.getJobName(), returned.getUuid());
 
     // we should have only marked this as run once since we delayed furthur execution
     // we should have only marked this as run once
