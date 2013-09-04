@@ -183,7 +183,6 @@ public class MUUserResourceIT extends AbstractRestIT {
   }
 
   @Test
-  @Ignore("causes problems in build")
   public void passwordResetIncorrectUserName() throws Exception {
 
     String email = "test2@usergrid.com";
