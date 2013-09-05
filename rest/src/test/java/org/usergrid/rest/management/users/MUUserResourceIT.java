@@ -216,6 +216,7 @@ public class MUUserResourceIT extends AbstractRestIT
   }
 
   @Test
+  @Ignore
   public void passwordResetIncorrectUserName() throws Exception {
 
     String email = "test2@usergrid.com";
