@@ -216,13 +216,16 @@ public class MUUserResourceIT extends AbstractRestIT
   }
 
   @Test
-  @Ignore
   public void passwordResetIncorrectUserName() throws Exception {
 
-    String email = "test2@usergrid.com";
-    setup.getMgmtSvc().createAdminUser("test2","test2","test2@usergrid.com","sesa2me",false,false);
+    String email = "SUPER@usergrid.com";
+    setup.getMgmtSvc().createOwnerAndOrganization("baconLovers","test2","tester2",email,"sesa2me");
+
+    //setup.getMgmtSvc().createAdminUser("test2","test2","test2@usergrid.com","sesa2me",false,false);
     UserInfo userInfo = setup.getMgmtSvc().getAdminUserByEmail(email);
+    //setup.getMgmtSvc().createOrganization("baconLovers",userInfo,true);
     String resetToken = setup.getMgmtSvc().getPasswordResetTokenForAdminUser(userInfo.getUuid(), 15000);
+   // setup.getMgmtSvc().createOwnerAndOrganization("baconLovers","test2","tester2",email,"sesa2me");
 
     assertTrue(setup.getMgmtSvc().checkPasswordResetTokenForAdminUser(userInfo.getUuid(), resetToken));
 
