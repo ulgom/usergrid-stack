@@ -123,7 +123,7 @@ public class SimpleIndexBucketLocatorImplTest {
         // test 100 elements
         SimpleIndexBucketLocatorImpl locator = new SimpleIndexBucketLocatorImpl(
                 bucketSize);
-
+        SimpleIndexBucketLocatorImpl locator1 = new SimpleIndexBucketLocatorImpl();
         List<String> buckets = locator.getBuckets(appId, IndexType.COLLECTION,
                 entityType, propName);
 

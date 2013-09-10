@@ -17,7 +17,9 @@ package org.usergrid.rest.test.security;
 
 import org.codehaus.jackson.JsonNode;
 import org.usergrid.rest.test.resource.TestContext;
-
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * @author tnine
@@ -42,6 +44,7 @@ public  class TestAppUser extends TestUser{
     return context.application().token(user, password);
   }
 
+
   /* (non-Javadoc)
    * @see org.usergrid.rest.test.security.TestUser#create(org.usergrid.rest.test.resource.TestContext)
    */
@@ -49,5 +52,7 @@ public  class TestAppUser extends TestUser{
   protected JsonNode createInternal(TestContext context) {
     return context.application().users().create(user, email, password);
   }
+
+
 
 }

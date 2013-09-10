@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.junit.*;
@@ -40,6 +41,7 @@ import org.usergrid.persistence.Results;
 import org.usergrid.persistence.cassandra.util.TraceTag;
 import org.usergrid.persistence.cassandra.util.TraceTagManager;
 import org.usergrid.persistence.cassandra.util.TraceTagReporter;
+import org.usergrid.utils.UUIDUtils;
 
 
 @Concurrent()
@@ -173,4 +175,21 @@ public class EntityManagerFactoryImplIT extends AbstractCoreIT
         traceTagReporter.report(traceTagManager.detach());
 	}
 
+    @Test
+    public void test() {
+        UUID appId = UUIDUtils.newTimeUUID();
+        Map properties = new HashMap();
+        properties.put("name","sample");
+        properties.put("name1","sample1");
+        properties.put("name2","sample2");
+        try{
+      String desc = emf.getImpementationDescription();
+            emf.setup();
+            emf.importApplication("rippela", appId, "name",properties );
+            emf.getApplications();
+            //emf.getApplication();
+        }catch(Exception e){
+
+        }
+    }
 }

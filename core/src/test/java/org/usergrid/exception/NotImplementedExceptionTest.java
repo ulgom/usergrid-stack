@@ -2,10 +2,15 @@ package org.usergrid.exception;
 
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.usergrid.Application;
+import org.usergrid.SimpleApplication;
 
 
 public class NotImplementedExceptionTest {
+
+
 
     @Test
     public void testConstructor() throws Exception{

@@ -27,20 +27,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.usergrid.AbstractCoreIT;
 import org.usergrid.CoreITSuite;
+import org.usergrid.Application;
+import org.usergrid.SimpleApplication;
+import org.usergrid.cassandra.ClearShiroSubject;
 import org.usergrid.cassandra.Concurrent;
 import org.usergrid.locking.Lock;
 import org.usergrid.locking.LockManager;
 import org.usergrid.locking.exception.UGLockException;
 import org.usergrid.persistence.cassandra.CassandraService;
+
 
 
 @Concurrent()
@@ -51,6 +51,9 @@ public class HectorLockManagerIT extends AbstractCoreIT
     private static LockManager manager;
     private static ExecutorService pool;
 
+
+    @Rule
+    public Application app = new SimpleApplication( setup );
 
     @BeforeClass
     public static void setup() throws Exception

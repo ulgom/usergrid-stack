@@ -36,6 +36,7 @@ public class AbstractBatcherTest {
     @Test
     public void testAddBatchSerial() {
         SimpleBatcher simpleBatcher = new SimpleBatcher();
+        simpleBatcher.setBatchSize(1);
         Count count = new Count("Counters",1,"c1",1);
         try{
             simpleBatcher.getBatch().addSerial(count);
@@ -89,5 +90,9 @@ public class AbstractBatcherTest {
         assertEquals(0, simpleBatcher.getBatch().getLocalCallCount());
     }
 
-
+    @Test
+    public void testAddSerial() {
+        SimpleBatcher simpleBatcher = new SimpleBatcher();
+        assertEquals(0, simpleBatcher.getBatch().getLocalCallCount());
+    }
 }

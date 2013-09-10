@@ -293,9 +293,9 @@ public class ConsumerTransaction extends NoTransactionSearch {
    * @param queueId
    * @param consumerId
    * @param startId
-   *          The time to start seeking from
+   *
    * @param lastId
-   *          The
+   *
    * @return
    */
   protected List<TransactionPointer> getConsumerIds(UUID queueId, UUID consumerId, SearchParam params,

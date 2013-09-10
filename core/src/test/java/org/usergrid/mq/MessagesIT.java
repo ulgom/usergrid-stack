@@ -16,16 +16,25 @@
 package org.usergrid.mq;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.usergrid.AbstractCoreIT;
+import org.usergrid.Application;
+import org.usergrid.SimpleApplication;
 import org.usergrid.cassandra.Concurrent;
 import org.usergrid.persistence.EntityManager;
+import org.usergrid.persistence.Entity;
+import org.usergrid.persistence.Results;
+//import org.usergrid.persistence.Query;
+import org.usergrid.mq.Query;
 import org.usergrid.utils.JsonUtils;
 
 import static org.junit.Assert.*;
@@ -35,16 +44,124 @@ public class MessagesIT extends AbstractCoreIT
 {
 	private static final Logger LOG = LoggerFactory.getLogger( MessagesIT.class );
 
+    @Rule
+    public Application app = new SimpleApplication( setup );
+
 	public MessagesIT() {
 		super();
 	}
 
+    @Test
+    public void testCollection() throws Exception
+    {
+        app.add( "username", "edanuff" );
+        app.add( "email", "ed@anuff.com" );
+        Entity user = app.create( "user" );
+        assertNotNull( user );
+        app.add( "actor", new LinkedHashMap<String, Object>()
+        { {
+                put( "displayName", "Ed Anuff" );
+                put( "objectType", "person" );
+            } });
+        app.add( "verb", "tweet" );
+        app.add( "content", "I ate a sammich" );
+        app.add( "ordinal", 3 );
+        Entity activity = app.create( "activity" );
+        assertNotNull( activity );
+        LOG.info( "" + activity.getClass() );
+        LOG.info( JsonUtils.mapToFormattedJsonString( activity ) );
+        activity = app.get( activity.getUuid() );
+        LOG.info( "Activity class = {}", activity.getClass() );
+        LOG.info( JsonUtils.mapToFormattedJsonString( activity ) );
+        app.addToCollection( user, "activities", activity );
+        // test queries on the collection
+        app.add( "actor", new LinkedHashMap<String, Object>()
+        { {
+                put( "displayName", "Ed Anuff" );
+                put( "objectType", "person" );
+            } });
+        app.add( "verb", "tweet2" );
+        app.add( "content", "I ate a pickle" );
+        app.add( "ordinal", 2 );
+        Entity activity2 = app.create( "activity" );
+        activity2 = app.get( activity2.getUuid() );
+        app.addToCollection( user, "activities", activity2 );
+        app.add( "actor", new LinkedHashMap<String, Object>()
+        { {
+                put( "displayName", "Ed Anuff" );
+                put( "objectType", "person" );
+            } });
+        app.add( "verb", "tweet2" );
+        app.add( "content", "I ate an apple" );
+        app.add( "ordinal", 1 );
+        Entity activity3 = app.create( "activity" );
+        activity3 = app.get( activity3.getUuid() );
+        app.addToCollection( user, "activities", activity3 );
+        // empty query
+        Query query = new Query();
+        /* Results r = app.searchCollection( user, "activities", query );
+        assertEquals( 3, r.size() ); // success
+        // query verb
+        query = new Query().addEqualityFilter( "verb", "tweet2" );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 2, r.size() );
+        // query verb, sort created
+        query = new Query().addEqualityFilter( "verb", "tweet2" );
+        query.addSort( "created" );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 2, r.size() );
+        List<Entity> entities = r.getEntities();
+        assertEquals( entities.get( 0 ).getUuid(), activity2.getUuid() );
+        assertEquals( entities.get( 1 ).getUuid(), activity3.getUuid() );
+        // query verb, sort ordinal
+        query = new Query().addEqualityFilter( "verb", "tweet2" );
+        query.addSort( "ordinal" );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 2, r.size() );
+        entities = r.getEntities();
+        assertEquals( entities.get( 0 ).getUuid(), activity3.getUuid() );
+        assertEquals( entities.get( 1 ).getUuid(), activity2.getUuid() );
+        // empty query, sort content
+        query = new Query();
+        query.addSort( "content" );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 3, r.size() );
+        entities = r.getEntities();
+        LOG.info( JsonUtils.mapToFormattedJsonString( entities ) );
+        assertEquals( entities.get( 0 ).getUuid(), activity2.getUuid() );
+        assertEquals( entities.get( 1 ).getUuid(), activity.getUuid() );
+        assertEquals( entities.get( 2 ).getUuid(), activity3.getUuid() );
+        // empty query, sort verb
+        query = new Query();
+        query.addSort( "verb" );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 3, r.size() );
+        // empty query, sort ordinal
+        query = new Query();
+        query.addSort( "ordinal" );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 3, r.size() );
+        entities = r.getEntities();
+        assertEquals( entities.get( 0 ).getUuid(), activity3.getUuid() );
+        assertEquals( entities.get( 1 ).getUuid(), activity2.getUuid() );
+        assertEquals( entities.get( 2 ).getUuid(), activity.getUuid() );
+        // query ordinal
+        query = new Query().addEqualityFilter( "ordinal", 2 );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 1, r.size() );
+        // query ordinal and sort ordinal
+        query = new Query().addEqualityFilter( "ordinal", 2 );
+        query.addSort( "ordinal" );
+        r = app.searchCollection( user, "activities", query );
+        assertEquals( 1, r.size() );  */
+    }
 
 	@Test
 	public void testMessages() throws Exception {
 		LOG.info("MessagesIT.testMessages");
 
 		UUID applicationId = setup.createApplication("testOrganization","testMessages");
+
 		assertNotNull(applicationId);
 
 		EntityManager em = getEntityManagerFactory().getEntityManager(
